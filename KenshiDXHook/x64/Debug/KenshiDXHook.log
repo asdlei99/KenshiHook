@@ -1,0 +1,8 @@
+﻿  Assembling dxgi.asm...
+  stdafx.cpp
+  Core.cpp
+  dxgi.cpp
+  Generating Code...
+x64\Debug\dxgi.obj : warning LNK4042: object specified more than once; extras ignored
+dxgi.obj : error LNK2019: unresolved external symbol RunASM referenced in function PROXY_ApplyCompatResolutionQuirking
+C:\Users\Marius\Documents\Programming\Visual Studio 2017\KenshiDXHook\x64\Debug\KenshiDXHook.dll : fatal error LNK1120: 1 unresolved externals
