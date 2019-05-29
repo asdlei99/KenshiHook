@@ -2,14 +2,22 @@
 
 // Variables for use with assembly code
 extern "C" int FixAndReturn();
+extern "C" int JmpToAbs64AddrPushPop();
+extern "C" QWORD absAddr = NULL;
+extern "C" QWORD presentAddr = NULL;
+extern "C" QWORD jmpBackAddr = NULL;
 
 // Pointers to functions
 PresentFunction originalPresentFunction;
 PresentFunction newPresentFunction;
 
-__int64 __fastcall Present(IDXGISwapChain *pSwapChain, UINT SyncInterval, UINT Flags)
+extern "C" __int64 __fastcall Present(IDXGISwapChain *pSwapChain, UINT SyncInterval, UINT Flags)
 {
-	FixAndReturn();
+	//std::ofstream file;
+	//file.open("HELLO FROM PRESENT.txt");
+	//file << pSwapChain;
+	//file.close();
+
 	return originalPresentFunction(pSwapChain, SyncInterval, Flags);
 }
 
@@ -32,10 +40,10 @@ void Core::Init()
 
 	PrintDebugMsg("----------------");
 
-	Hook(originalPresentFunction, Present, 14);
+	Hook(originalPresentFunction, FixAndReturn, 14);
 }
 
-bool Core::Hook(PresentFunction originalFunction, PresentFunction newFunction, int length)
+bool Core::Hook(PresentFunction originalFunction, void* newFunction, int length)
 {
 	PrintDebugMsg(originalFunction);
 	PrintDebugMsg(newFunction);
@@ -57,6 +65,9 @@ bool Core::Hook(PresentFunction originalFunction, PresentFunction newFunction, i
 	VirtualProtect(originalFunction, length, oldProtection, &temp);
 
 	originalPresentFunction = (PresentFunction)((QWORD)originalFunction + length);
+
+	presentAddr = (QWORD)Present;
+	jmpBackAddr = (QWORD)originalPresentFunction;
 
 	return true;
 }

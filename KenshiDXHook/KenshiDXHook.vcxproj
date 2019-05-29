@@ -121,7 +121,7 @@
       </EntryPointSymbol>
     </Link>
     <PostBuildEvent>
-      <Command>COPY "C:\Users\Marius\Documents\Programming\Visual Studio 2017\KenshiDXHook\x64\Release\dxgi.dll" "E:\SteamLibrary\steamapps\common\Kenshi\dxgi.dll"</Command>
+      <Command>COPY "C:\Users\Marius\Documents\Programming\Github repositories\KenshiDXHook\x64\Release\dxgi.dll" "E:\SteamLibrary\steamapps\common\Kenshi\dxgi.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -168,7 +168,7 @@
       </EntryPointSymbol>
     </Link>
     <PostBuildEvent>
-      <Command>COPY "C:\Users\Marius\Documents\Programming\Visual Studio 2017\KenshiDXHook\x64\Release\dxgi.dll" "E:\SteamLibrary\steamapps\common\Kenshi\dxgi.dll"</Command>
+      <Command>COPY "C:\Users\Marius\Documents\Programming\Github repositories\KenshiDXHook\x64\Release\dxgi.dll" "E:\SteamLibrary\steamapps\common\Kenshi\dxgi.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -183,6 +183,7 @@
     <None Include="dxgi.def" />
   </ItemGroup>
   <ItemGroup>
+    <MASM Include="JmpToAbs64AddrPushPop.asm" />
     <MASM Include="JmpToAddr.asm">
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>

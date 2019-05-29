@@ -39,5 +39,8 @@
     <MASM Include="FixAndReturn.asm">
       <Filter>Source Files</Filter>
     </MASM>
+    <MASM Include="JmpToAbs64AddrPushPop.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
   </ItemGroup>
 </Project>

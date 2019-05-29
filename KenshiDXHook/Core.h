@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <intrin.h>
 #include <dxgi.h>
+#include <fstream>
 
 #define PrintDebugMsg(msg) std::cout << msg << std::endl;
 
@@ -22,6 +23,6 @@ private:
 
 public:
 	void Init();
-	bool Hook(PresentFunction originalFunction, PresentFunction newFunction, int bytes);
+	bool Hook(PresentFunction originalFunction, void* newFunction, int bytes);
 	~Core();
 };
