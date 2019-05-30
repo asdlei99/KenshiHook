@@ -9,8 +9,7 @@ FARPROC procAddresses[21];
 
 DWORD WINAPI MainThread(LPVOID lpParam)
 {
-	Core core = Core();
-	core.Init();
+
 	return S_OK;
 }
 
@@ -44,7 +43,10 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, LPVOID)
 		procAddresses[19] = GetProcAddress(originalDll, "SetAppCompatStringPointer");
 		procAddresses[20] = GetProcAddress(originalDll, "UpdateHMDEmulationStatus");
 
-		CreateThread(0, 0x1000, &MainThread, 0, 0, NULL);
+		Core core = Core();
+		core.Init();
+
+		//CreateThread(0, 0x1000, &MainThread, 0, 0, NULL);
 	}
 
 	if (reason == DLL_PROCESS_DETACH)

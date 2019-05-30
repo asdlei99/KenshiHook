@@ -36,10 +36,10 @@
     <MASM Include="JmpToAddr.asm">
       <Filter>Source Files</Filter>
     </MASM>
-    <MASM Include="FixAndReturn.asm">
+    <MASM Include="JmpToAbs64AddrPushPop.asm">
       <Filter>Source Files</Filter>
     </MASM>
-    <MASM Include="JmpToAbs64AddrPushPop.asm">
+    <MASM Include="FixAndJmpBack.asm">
       <Filter>Source Files</Filter>
     </MASM>
   </ItemGroup>

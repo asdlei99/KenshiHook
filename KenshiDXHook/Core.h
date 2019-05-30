@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <intrin.h>
 #include <dxgi.h>
+#include <d3d11.h>
 #include <fstream>
 
 #define PrintDebugMsg(msg) std::cout << msg << std::endl;
@@ -13,7 +14,7 @@ typedef unsigned __int64 QWORD; // Seems my C++ doesn't have QWORD
 // 8 bytes long, so we use QWORD (the same as unsigned __int64) to hold memory addresses
 
 // Definition of the structure of the DXGI present function
-typedef __int64 (_fastcall* PresentFunction)(IDXGISwapChain *pSwapChain, UINT SyncInterval, UINT Flags);
+typedef __int64 (__fastcall* PresentFunction)(IDXGISwapChain *pSwapChain, UINT SyncInterval, UINT Flags);
 
 class Core
 {
@@ -23,6 +24,6 @@ private:
 
 public:
 	void Init();
-	bool Hook(PresentFunction originalFunction, void* newFunction, int bytes);
+	bool Hook(PresentFunction originalFunction, QWORD newFunction, int bytes);
 	~Core();
 };

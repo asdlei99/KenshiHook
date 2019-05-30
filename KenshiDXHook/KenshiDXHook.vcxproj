@@ -177,7 +177,7 @@
   <ItemGroup>
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="dxgi.cpp" />
-    <MASM Include="FixAndReturn.asm" />
+    <MASM Include="FixAndJmpBack.asm" />
   </ItemGroup>
   <ItemGroup>
     <None Include="dxgi.def" />

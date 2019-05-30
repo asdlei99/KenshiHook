@@ -1,7 +1,7 @@
 #include "Core.h"
 
 // Variables for use with assembly code
-extern "C" int FixAndReturn();
+extern "C" int FixAndJmpBack();
 extern "C" int JmpToAbs64AddrPushPop();
 extern "C" QWORD absAddr = NULL;
 extern "C" QWORD presentAddr = NULL;
@@ -11,21 +11,79 @@ extern "C" QWORD jmpBackAddr = NULL;
 PresentFunction originalPresentFunction;
 PresentFunction newPresentFunction;
 
-extern "C" __int64 __fastcall Present(IDXGISwapChain *pSwapChain, UINT SyncInterval, UINT Flags)
-{
-	//std::ofstream file;
-	//file.open("HELLO FROM PRESENT.txt");
-	//file << pSwapChain;
-	//file.close();
+BOOL g_bInitialised = false;
+ID3D11DeviceContext *pContext = NULL;
+ID3D11Device *pDevice = NULL;
+ID3D11RenderTargetView *mainRenderTargetView;
 
-	return originalPresentFunction(pSwapChain, SyncInterval, Flags);
+bool first = true;
+
+HRESULT GetDeviceAndCtxFromSwapchain(IDXGISwapChain *pSwapChain, ID3D11Device **ppDevice, ID3D11DeviceContext **ppContext)
+{
+	HRESULT ret = pSwapChain->GetDevice(__uuidof(ID3D11Device), (PVOID*)ppDevice);
+
+	if (SUCCEEDED(ret))
+		(*ppDevice)->GetImmediateContext(ppContext);
+
+	return ret;
+}
+
+__int64 __fastcall Present(IDXGISwapChain *pSwapChain, UINT SyncInterval, UINT Flags)
+{
+
+	// This crashes the code, if this function is empty, it does not crash
+	if (first)
+	{
+		std::ofstream file;
+		file.open("HELLO FROM PRESENT.txt");
+		file << "HELLO";
+		file.close();
+		first = false;
+	}
+
+	// Below is some DirectX code I want to test later
+
+	//first = false;
+	//if (!g_bInitialised)
+	//{
+
+		//if (FAILED(GetDeviceAndCtxFromSwapchain(pSwapChain, &pDevice, &pContext)))
+			//return 0;
+
+		//DXGI_SWAP_CHAIN_DESC sd;
+		//pSwapChain->GetDesc(&sd);
+
+		//ImGui_ImplWin32_Init(sd.OutputWindow);
+		//ImGui_ImplDX11_Init(pDevice, pContext);
+
+		//ID3D11Texture2D* pBackBuffer;
+
+		//pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
+		//pDevice->CreateRenderTargetView(pBackBuffer, NULL, &mainRenderTargetView);
+		//pBackBuffer->Release();
+
+		//g_bInitialised = true;
+	//}
+
+	//ImGui_ImplWin32_NewFrame();
+	//ImGui_ImplDX11_NewFrame();
+
+	//ImGui::NewFrame();
+	//bool bShow = true;
+	//ImGui::ShowDemoWindow(&bShow);
+	//ImGui::EndFrame();
+
+	//ImGui::Render();
+
+	//pContext->OMSetRenderTargets(1, &mainRenderTargetView, NULL);
+
+	return 0;
 }
 
 void Core::Init()
 {
 	AllocConsole();
-	AttachConsole(GetCurrentProcessId());
-	freopen("CON", "w", stdout);
+	freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
 	SetWindowText(GetConsoleWindow(), "KenshiDXHook");
 
 	PrintDebugMsg("test");
@@ -40,10 +98,10 @@ void Core::Init()
 
 	PrintDebugMsg("----------------");
 
-	Hook(originalPresentFunction, FixAndReturn, 14);
+	Hook(originalPresentFunction, (QWORD)FixAndJmpBack, 14);
 }
 
-bool Core::Hook(PresentFunction originalFunction, void* newFunction, int length)
+bool Core::Hook(PresentFunction originalFunction, QWORD newFunction, int length)
 {
 	PrintDebugMsg(originalFunction);
 	PrintDebugMsg(newFunction);
@@ -59,7 +117,7 @@ bool Core::Hook(PresentFunction originalFunction, void* newFunction, int length)
 	// The kind of jump I'm doing here seems to only use 6 bytes,
 	// and then grabs the subsequent memory address,
 	// I'm not quite sure if I'm doing this right
-	*(QWORD*)((QWORD)originalFunction + 6) = (QWORD)newFunction;
+	*(QWORD*)((QWORD)originalFunction + 6) = newFunction;
 
 	DWORD temp;
 	VirtualProtect(originalFunction, length, oldProtection, &temp);
