@@ -1,6 +1,5 @@
 #include <Windows.h>
 #include <iostream>
-#include <d3d11.h>
 #include "Core.h"
 
 HINSTANCE thisInstance = 0;
@@ -9,12 +8,15 @@ FARPROC procAddresses[21];
 
 DWORD WINAPI MainThread(LPVOID lpParam)
 {
+	Core core = Core();
+	core.Init();
 
 	return S_OK;
 }
 
 BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, LPVOID)
 {
+
 	if (reason == DLL_PROCESS_ATTACH)
 	{
 		thisInstance = hInst;
@@ -43,13 +45,9 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, LPVOID)
 		procAddresses[19] = GetProcAddress(originalDll, "SetAppCompatStringPointer");
 		procAddresses[20] = GetProcAddress(originalDll, "UpdateHMDEmulationStatus");
 
-		Core core = Core();
-		core.Init();
-
-		//CreateThread(0, 0x1000, &MainThread, 0, 0, NULL);
+		CreateThread(0, 0x1000, &MainThread, 0, 0, NULL);
 	}
-
-	if (reason == DLL_PROCESS_DETACH)
+	else if (reason == DLL_PROCESS_DETACH)
 	{
 		FreeLibrary(originalDll);
 		return 1;

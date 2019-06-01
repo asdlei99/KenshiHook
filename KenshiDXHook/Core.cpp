@@ -1,133 +1,110 @@
 #include "Core.h"
 
 // Variables for use with assembly code
-extern "C" int FixAndJmpBack();
-extern "C" int JmpToAbs64AddrPushPop();
-extern "C" QWORD absAddr = NULL;
+extern "C" int JmpToHookAndJmpBack();
 extern "C" QWORD presentAddr = NULL;
 extern "C" QWORD jmpBackAddr = NULL;
 
-// Pointers to functions
+// Pointer to original Present
 PresentFunction originalPresentFunction;
-PresentFunction newPresentFunction;
 
-BOOL g_bInitialised = false;
-ID3D11DeviceContext *pContext = NULL;
-ID3D11Device *pDevice = NULL;
-ID3D11RenderTargetView *mainRenderTargetView;
+// Where our Present will jump to after its done
+QWORD newPresentReturn = NULL;
 
+std::vector<std::string> pushToConsole = std::vector<std::string>();
 bool first = true;
 
-HRESULT GetDeviceAndCtxFromSwapchain(IDXGISwapChain *pSwapChain, ID3D11Device **ppDevice, ID3D11DeviceContext **ppContext)
-{
-	HRESULT ret = pSwapChain->GetDevice(__uuidof(ID3D11Device), (PVOID*)ppDevice);
+DebugConsole* consoleRef;
+Renderer* rendererRef;
 
-	if (SUCCEEDED(ret))
-		(*ppDevice)->GetImmediateContext(ppContext);
 
-	return ret;
-}
-
-__int64 __fastcall Present(IDXGISwapChain *pSwapChain, UINT SyncInterval, UINT Flags)
+HRESULT __fastcall Present(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags)
 {
 
-	// This crashes the code, if this function is empty, it does not crash
 	if (first)
 	{
-		std::ofstream file;
-		file.open("HELLO FROM PRESENT.txt");
-		file << "HELLO";
-		file.close();
+		consoleRef->PrintDebugMsg("Hello from function hook", nullptr, consoleRef->PROGRESS);
+		consoleRef->PrintDebugMsg("Swap chain address: %p", (void*)swapChain, consoleRef->PROGRESS);
 		first = false;
 	}
 
-	// Below is some DirectX code I want to test later
+	rendererRef->Render(swapChain, syncInterval, flags, consoleRef);
 
-	//first = false;
-	//if (!g_bInitialised)
-	//{
-
-		//if (FAILED(GetDeviceAndCtxFromSwapchain(pSwapChain, &pDevice, &pContext)))
-			//return 0;
-
-		//DXGI_SWAP_CHAIN_DESC sd;
-		//pSwapChain->GetDesc(&sd);
-
-		//ImGui_ImplWin32_Init(sd.OutputWindow);
-		//ImGui_ImplDX11_Init(pDevice, pContext);
-
-		//ID3D11Texture2D* pBackBuffer;
-
-		//pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
-		//pDevice->CreateRenderTargetView(pBackBuffer, NULL, &mainRenderTargetView);
-		//pBackBuffer->Release();
-
-		//g_bInitialised = true;
-	//}
-
-	//ImGui_ImplWin32_NewFrame();
-	//ImGui_ImplDX11_NewFrame();
-
-	//ImGui::NewFrame();
-	//bool bShow = true;
-	//ImGui::ShowDemoWindow(&bShow);
-	//ImGui::EndFrame();
-
-	//ImGui::Render();
-
-	//pContext->OMSetRenderTargets(1, &mainRenderTargetView, NULL);
-
-	return 0;
+	return ((PresentFunction)newPresentReturn)(swapChain, syncInterval, flags);
 }
 
 void Core::Init()
 {
-	AllocConsole();
-	freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
-	SetWindowText(GetConsoleWindow(), "KenshiDXHook");
+	console = DebugConsole("KenshiDXHook");
+	consoleRef = &console;
+	console.PrintDebugMsg("Initializing hook...", nullptr, console.MsgType::STARTPROCESS);
 
-	PrintDebugMsg("test");
+	Renderer renderer = Renderer();
+	rendererRef = &renderer;
 
 	originalDllBaseAddress = (QWORD)GetModuleHandleA("dxgi_.dll");
 	originalPresentFunctionOffset = 0x5070;
 	originalPresentFunction = (PresentFunction)(originalDllBaseAddress + (QWORD)originalPresentFunctionOffset);
 
-	PrintDebugMsg((void*)originalDllBaseAddress);
-	PrintDebugMsg((void*)originalPresentFunctionOffset);
-	PrintDebugMsg(originalPresentFunction);
+	console.PrintDebugMsg("dxgi.dll base address: %p", (void*)originalDllBaseAddress, console.MsgType::PROGRESS);
+	console.PrintDebugMsg("Present offset: %p", (void*)originalPresentFunctionOffset, console.MsgType::PROGRESS);
+	console.PrintDebugMsg("Present address: %p", (void*)originalPresentFunction, console.MsgType::PROGRESS);
 
-	PrintDebugMsg("----------------");
+	Hook((QWORD)originalPresentFunction, (QWORD)JmpToHookAndJmpBack, 14);
 
-	Hook(originalPresentFunction, (QWORD)FixAndJmpBack, 14);
+	console.PrintDebugMsg("Present function hooked successfully", nullptr, console.MsgType::PROGRESS);
+
+	Update();
 }
 
-bool Core::Hook(PresentFunction originalFunction, QWORD newFunction, int length)
+void Core::Update()
 {
-	PrintDebugMsg(originalFunction);
-	PrintDebugMsg(newFunction);
+
+	while (true)
+	{
+
+		if (pushToConsole.size() > 0)
+		{
+			console.PrintDebugMsg(pushToConsole.at(0), nullptr, console.MsgType::PROGRESS);
+			pushToConsole.erase(pushToConsole.begin());
+		}
+
+		Sleep(20);
+	}
+
+}
+
+void Core::Hook(QWORD originalFunction, QWORD newFunction, int length)
+{
 	DWORD oldProtection;
 
-	VirtualProtect(originalFunction, length, PAGE_EXECUTE_READWRITE, &oldProtection);
+	VirtualProtect((void*)originalFunction, length, PAGE_EXECUTE_READWRITE, &oldProtection);
 
-	memset(originalFunction, 0x90, length);
+	memset((void*)originalFunction, 0x90, length);
 
-	// Bytes are flipped (because of endianness), could alternatively use _byteswap_uint64()
-	*(QWORD*)originalFunction = 0x0000000025FF;
+	// Place an absolute 64-bit jump (FF 25 00000000)
+	// Bytes are flipped (because of endianness), so we use _byteswap
+	// Fill the _byteswap function with 8 bytes so it doesn't return garbage
+	*(QWORD*)originalFunction = _byteswap_uint64(0xFF25000000000000);
 
-	// The kind of jump I'm doing here seems to only use 6 bytes,
-	// and then grabs the subsequent memory address,
-	// I'm not quite sure if I'm doing this right
-	*(QWORD*)((QWORD)originalFunction + 6) = newFunction;
+
+	// We placed an absolute 64-bit jump, that instruction uses only 6 bytes
+	// on its own, but then reads an 8-byte address from the subsequent memory address
+	// which we place now
+	*(QWORD*)((QWORD)originalFunction + 6) = (QWORD)newFunction;
 
 	DWORD temp;
-	VirtualProtect(originalFunction, length, oldProtection, &temp);
+	VirtualProtect((void*)originalFunction, length, oldProtection, &temp);
 
 	originalPresentFunction = (PresentFunction)((QWORD)originalFunction + length);
 
 	presentAddr = (QWORD)Present;
 	jmpBackAddr = (QWORD)originalPresentFunction;
 
-	return true;
+	// We want a jump from our new present back to the original instructions
+	newPresentReturn = (QWORD)JmpToHookAndJmpBack + 6;
+
+	return;
 }
 
 Core::~Core()

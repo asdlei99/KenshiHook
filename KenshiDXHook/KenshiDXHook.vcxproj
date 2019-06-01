@@ -173,17 +173,20 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Core.h" />
+    <ClInclude Include="Renderer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DebugConsole.cpp" />
+    <ClInclude Include="DebugConsole.h" />
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="dxgi.cpp" />
-    <MASM Include="FixAndJmpBack.asm" />
+    <ClCompile Include="Renderer.cpp" />
+    <MASM Include="JmpToHookAndJmpBack.asm" />
   </ItemGroup>
   <ItemGroup>
     <None Include="dxgi.def" />
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="JmpToAbs64AddrPushPop.asm" />
     <MASM Include="JmpToAddr.asm">
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>

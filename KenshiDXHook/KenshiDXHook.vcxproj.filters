@@ -9,13 +9,19 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="Resource Files">
+    <Filter Include="Source Files\Assembly Code">
+      <UniqueIdentifier>{846dd5ed-d137-4e40-834a-1af160a5884a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Module Definition File">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -26,21 +32,27 @@
     <ClCompile Include="dxgi.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DebugConsole.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugConsole.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="JmpToHookAndJmpBack.asm">
+      <Filter>Source Files\Assembly Code</Filter>
+    </MASM>
+    <MASM Include="JmpToAddr.asm">
+      <Filter>Source Files\Assembly Code</Filter>
+    </MASM>
   </ItemGroup>
   <ItemGroup>
     <None Include="dxgi.def">
-      <Filter>Source Files</Filter>
+      <Filter>Module Definition File</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <MASM Include="JmpToAddr.asm">
-      <Filter>Source Files</Filter>
-    </MASM>
-    <MASM Include="JmpToAbs64AddrPushPop.asm">
-      <Filter>Source Files</Filter>
-    </MASM>
-    <MASM Include="FixAndJmpBack.asm">
-      <Filter>Source Files</Filter>
-    </MASM>
   </ItemGroup>
 </Project>
