@@ -15,16 +15,30 @@ void DebugConsole::PrintDebugMsg(std::string msg, void* value, MsgType msgType)
 {
 	if (msg == "") return;
 
+	std::string preMsg = "";
+
+	for (int i = 0; i < counter; i++)
+	{
+		preMsg += "---";
+	}
+
+	if (counter > 0) preMsg += ">";
+
 	switch (msgType)
 	{
-	case(0): // STARTPROCESS
-		printf(std::string("[?] " + msg + "\n").c_str(), value);
+	case(STARTPROCESS):
+		printf(std::string(preMsg + "[+] " + msg + "\n").c_str(), value);
+		counter++;
 		break;
-	case(1): // PROGRESS
-		printf(std::string("[+] " + msg + "\n").c_str(), value);
+	case(PROGRESS):
+		printf(std::string(preMsg + " " + msg + "\n").c_str(), value);
 		break;
-	case(2): // FAILED
-		printf(std::string("[-] " + msg + "\n").c_str(), value);
+	case(COMPLETE):
+		printf(std::string(preMsg + " " + msg + "\n").c_str(), value);
+		counter--;
+		break;
+	case(FAILED): 
+		printf(std::string(preMsg + " [!] " + msg + "\n").c_str(), value);
 		break;
 	}
 

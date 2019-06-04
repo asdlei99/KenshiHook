@@ -14,8 +14,7 @@ QWORD newPresentReturn = NULL;
 std::vector<std::string> pushToConsole = std::vector<std::string>();
 bool first = true;
 
-DebugConsole* consoleRef;
-Renderer* rendererRef;
+Core* coreRef;
 
 
 HRESULT __fastcall Present(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags)
@@ -23,24 +22,24 @@ HRESULT __fastcall Present(IDXGISwapChain *swapChain, UINT syncInterval, UINT fl
 
 	if (first)
 	{
-		consoleRef->PrintDebugMsg("Hello from function hook", nullptr, consoleRef->PROGRESS);
-		consoleRef->PrintDebugMsg("Swap chain address: %p", (void*)swapChain, consoleRef->PROGRESS);
+		DebugConsole* consoleRef = &coreRef->console;
+		consoleRef->PrintDebugMsg("Hello from function hook", nullptr, consoleRef->MsgType::PROGRESS);
+		consoleRef->PrintDebugMsg("Swap chain address: %p", (void*)swapChain, consoleRef->MsgType::COMPLETE);
 		first = false;
 	}
 
-	rendererRef->Render(swapChain, syncInterval, flags, consoleRef);
+	coreRef->renderer.Render(swapChain, syncInterval, flags);
 
 	return ((PresentFunction)newPresentReturn)(swapChain, syncInterval, flags);
 }
 
 void Core::Init()
 {
+	coreRef = this;
 	console = DebugConsole("KenshiDXHook");
-	consoleRef = &console;
 	console.PrintDebugMsg("Initializing hook...", nullptr, console.MsgType::STARTPROCESS);
 
-	Renderer renderer = Renderer();
-	rendererRef = &renderer;
+	renderer = Renderer(&console);
 
 	originalDllBaseAddress = (QWORD)GetModuleHandleA("dxgi_.dll");
 	originalPresentFunctionOffset = 0x5070;

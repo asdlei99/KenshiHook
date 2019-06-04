@@ -20,7 +20,7 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, LPVOID)
 	if (reason == DLL_PROCESS_ATTACH)
 	{
 		thisInstance = hInst;
-		originalDll = LoadLibrary(".\\dxgi_.dll");
+		originalDll = LoadLibrary("dxgi_.dll");
 		if(!originalDll) return false;
 
 		procAddresses[0] = GetProcAddress(originalDll, "ApplyCompatResolutionQuirking");

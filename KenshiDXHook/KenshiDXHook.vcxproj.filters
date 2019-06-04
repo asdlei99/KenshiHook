@@ -16,12 +16,18 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="HLSL Shaders">
+      <UniqueIdentifier>{878cfa63-2eb2-4a8d-af0d-84eb99591a09}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Renderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugConsole.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -34,9 +40,6 @@
     </ClCompile>
     <ClCompile Include="DebugConsole.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DebugConsole.h">
-      <Filter>Header Files</Filter>
     </ClCompile>
     <ClCompile Include="Renderer.cpp">
       <Filter>Source Files</Filter>
@@ -54,5 +57,13 @@
     <None Include="dxgi.def">
       <Filter>Module Definition File</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="PixelShader.hlsl">
+      <Filter>HLSL Shaders</Filter>
+    </Text>
+    <Text Include="VertexShader.hlsl">
+      <Filter>HLSL Shaders</Filter>
+    </Text>
   </ItemGroup>
 </Project>

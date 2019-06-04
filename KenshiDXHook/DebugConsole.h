@@ -9,15 +9,17 @@ class DebugConsole
 {
 private:
 	std::vector<std::string> msgQueue;
+	int counter = 0;
 
 public:
 	enum MsgType
 	{
 		STARTPROCESS,
 		PROGRESS,
+		COMPLETE,
 		FAILED
 	};
 	DebugConsole();
 	DebugConsole(std::string consoleName);
-	void PrintDebugMsg(std::string msg, void* value, MsgType msgType);
+	void PrintDebugMsg(std::string msg, void* variable, MsgType msgType);
 };

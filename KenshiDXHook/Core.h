@@ -10,10 +10,10 @@
 #include "DebugConsole.h"
 #include "Renderer.h"
 
-typedef unsigned __int64 QWORD; // Seems my C++ doesn't have QWORD predefined
 // An unsigned __int64 consists of 8 bytes in memory,
 // and we are dealing with a 64-bit program, where the memory addresses are
 // 8 bytes long, so we use QWORD (the same as unsigned __int64) to hold memory addresses
+typedef unsigned __int64 QWORD; // Seems my C++ doesn't have QWORD predefined
 
 // Definition of the structure of the DXGI present function, so we can treat memory addresses
 // as a function, and pass parameters to the registers and stack at the location
@@ -27,6 +27,7 @@ private:
 
 public:
 	DebugConsole console;
+	Renderer renderer;
 	void Init();
 	void Update();
 	void Hook(QWORD originalFunction, QWORD newFunction, int bytes);
