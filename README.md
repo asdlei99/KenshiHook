@@ -1,6 +1,6 @@
-##KenshiHook
+## KenshiHook
 
-#####If you want to build this, follow these steps:
+##### If you want to build this, follow these steps:
 
 You will have to remove/change the post-build events in Visual Studio, you can find this in Project properties -> Configuration properties -> Build events -> Post-build event.
 
