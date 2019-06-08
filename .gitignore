@@ -1,19 +1,21 @@
 
-KenshiDXHook/x64/Debug/
+KenshiHook/x64/Debug/
 
-KenshiDXHook/x64/Release/
+KenshiHook/x64/Release/
 
 x64/Debug/
 
 x64/Release/
 
-\.vs/KenshiDXHook/v15/
+\.vs/KenshiHook/v15/
 
 packages/directxtk_desktop_2015\.2019\.5\.31\.1/
 
-KenshiDXHook/Release/
+KenshiHook/Release/
 
-KenshiDXHook/packages.config
-KenshiDXHook/settings.cfg
-KenshiDXHook/kenshi.log
-KenshiDXHook/kenshi_info.log
+KenshiHook/packages.config
+KenshiHook/settings.cfg
+KenshiHook/kenshi.log
+KenshiHook/kenshi_info.log
+
+KenshiHook/Debug/
