@@ -28,11 +28,11 @@ protected:
 public:
 	XMFLOAT3 GetPos();
 
-	ID3D11Buffer* GetVertexBuffer();
+	ID3D11Buffer** GetVertexBuffer();
 	D3D11_BUFFER_DESC GetVertexDesc();
 	D3D11_SUBRESOURCE_DATA GetVertexSubData();
 
-	ID3D11Buffer* GetIndexBuffer();
+	ID3D11Buffer** GetIndexBuffer();
 	D3D11_BUFFER_DESC GetIndexDesc();
 	D3D11_SUBRESOURCE_DATA GetIndexSubData();
 

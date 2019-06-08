@@ -63,7 +63,7 @@ bool Renderer::Init(IDXGISwapChain* swapChain, UINT syncInterval, UINT flags)
 	return true;
 }
 
-bool Renderer::Render(IDXGISwapChain* swapChain, UINT syncInterval, UINT flags, std::vector<Mesh>* thingsToDraw)
+bool Renderer::Render(IDXGISwapChain* swapChain, UINT syncInterval, UINT flags, std::vector<Mesh> thingsToDraw)
 {
 	context->OMSetRenderTargets(1, &mainRenderTargetView, nullptr);
 	context->RSSetViewports(1, &viewport);
@@ -79,24 +79,17 @@ bool Renderer::Render(IDXGISwapChain* swapChain, UINT syncInterval, UINT flags, 
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 
-	//console->PrintDebugMsg("Things to draw size: %i", (void*)thingsToDraw->size(), console->MsgType::PROGRESS);
-
-	for (int i = 0; i < thingsToDraw->size(); i++)
+	for (int i = 0; i < thingsToDraw.size(); i++)
 	{
-		Mesh mesh = thingsToDraw->at(0);
-		//console->PrintDebugMsg("%s", (void*)thingsToDraw->at(0).GetMeshClassName().c_str(), console->MsgType::PROGRESS);
+		Mesh mesh = thingsToDraw.at(i);
 		ID3D11ShaderResourceView* texture = textures->GetTexture(mesh.GetTextureIndex());
 		context->PSSetShaderResources(0, 1, &texture);
-		ID3D11Buffer* meshVB = mesh.GetVertexBuffer();
-		ID3D11Buffer* meshIB = mesh.GetIndexBuffer();
-		console->PrintDebugMsg("test HALLO HALLO HALLO", nullptr, console->MsgType::PROGRESS);
-		console->PrintDebugMsg("%p", (void*)meshVB, console->MsgType::PROGRESS);
-		console->PrintDebugMsg("%p", (void*)meshIB, console->MsgType::PROGRESS);
-		context->IASetVertexBuffers(0, 1, &meshVB, &stride, &offset);
+		ID3D11Buffer** meshVB = mesh.GetVertexBuffer();
+		ID3D11Buffer* meshIB = *mesh.GetIndexBuffer();
+		context->IASetVertexBuffers(0, 1, meshVB, &stride, &offset);
 		context->IASetIndexBuffer(meshIB, DXGI_FORMAT_R32_UINT, 0);
+		context->DrawIndexed(mesh.GetNumIndices(), 0, 0);
 	}
-
-	context->DrawIndexed(6, 0, 0);
 
 	//context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 	//context->Draw(3, 0);
@@ -170,10 +163,9 @@ ID3DBlob* Renderer::LoadShader(const char* shader, std::string targetShaderVersi
 	return shaderBlob;
 }
 
-HRESULT Renderer::CreateBufferForMesh(D3D11_BUFFER_DESC desc, D3D11_SUBRESOURCE_DATA data, ID3D11Buffer* buffer)
+HRESULT Renderer::CreateBufferForMesh(D3D11_BUFFER_DESC desc, D3D11_SUBRESOURCE_DATA data, ID3D11Buffer** buffer)
 {
-	HRESULT hr = device->CreateBuffer(&desc, &data, &buffer);
-	console->PrintDebugMsg("DENNE OGSSS %p", (void*)&buffer, console->MsgType::PROGRESS);
+	HRESULT hr = device->CreateBuffer(&desc, &data, buffer);
 	return hr;
 }
 
@@ -201,6 +193,16 @@ void Renderer::CreateExampleTriangle()
 bool Renderer::IsInitialized()
 {
 	return initialized;
+}
+
+bool Renderer::IsFirstRender()
+{
+	return firstRender;
+}
+
+void Renderer::SetFirstRender(bool isFirstRender)
+{
+	firstRender = isFirstRender;
 }
 
 ID3D11Device * Renderer::GetDevice()

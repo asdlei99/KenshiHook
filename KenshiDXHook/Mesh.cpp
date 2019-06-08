@@ -6,9 +6,9 @@ XMFLOAT3 Mesh::GetPos()
 	return normDevCoords;
 }
 
-ID3D11Buffer* Mesh::GetVertexBuffer()
+ID3D11Buffer** Mesh::GetVertexBuffer()
 {
-	return vertexBuffer;
+	return &vertexBuffer;
 }
 
 D3D11_BUFFER_DESC Mesh::GetVertexDesc()
@@ -21,9 +21,9 @@ D3D11_SUBRESOURCE_DATA Mesh::GetVertexSubData()
 	return vertexSubData;
 }
 
-ID3D11Buffer* Mesh::GetIndexBuffer()
+ID3D11Buffer** Mesh::GetIndexBuffer()
 {
-	return indexBuffer;
+	return &indexBuffer;
 }
 
 D3D11_BUFFER_DESC Mesh::GetIndexDesc()

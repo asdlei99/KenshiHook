@@ -27,6 +27,7 @@ private:
 	DebugConsole* console;
 	Textures* textures;
 	bool initialized = false;
+	bool firstRender = true;
 	int windowWidth, windowHeight;
 
 	void CreateExampleTriangle();
@@ -37,9 +38,11 @@ public:
 	Renderer() {};
 	Renderer(DebugConsole* console);
 	bool Init(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags);
-	bool Render(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags, std::vector<Mesh>* thingsToDraw);
-	HRESULT CreateBufferForMesh(D3D11_BUFFER_DESC desc, D3D11_SUBRESOURCE_DATA data, ID3D11Buffer* buffer);
+	bool Render(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags, std::vector<Mesh> thingsToDraw);
+	HRESULT CreateBufferForMesh(D3D11_BUFFER_DESC desc, D3D11_SUBRESOURCE_DATA data, ID3D11Buffer** buffer);
 	bool IsInitialized();
+	bool IsFirstRender();
+	void SetFirstRender(bool isFirstRender);
 	ID3D11Device* GetDevice();
 	void SetTextureManager(Textures* textures);
 	void Cleanup();

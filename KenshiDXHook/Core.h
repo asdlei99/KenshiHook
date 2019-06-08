@@ -12,6 +12,7 @@
 #include "Mesh.h"
 #include "TexturedBox.h"
 #include "Textures.h"
+#include <comdef.h>
 
 // An unsigned __int64 consists of 8 bytes in memory,
 // and we are dealing with a 64-bit program, where the memory addresses are
@@ -41,6 +42,6 @@ public:
 	void Hook(QWORD originalFunction, QWORD newFunction, int bytes);
 	void Update();
 	void Render(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags);
-	void AddMesh(Mesh);
+	void AddMesh(Mesh mesh);
 	~Core();
 };

@@ -10,10 +10,10 @@ TexturedBox::TexturedBox(float normDevX, float normDevY, float size, int texture
 
 	vertices =
 	{
-		{ XMFLOAT3(0.0f, 0.5f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(-1.0f, -1.0f) },
-		{ XMFLOAT3(0.45f, -0.5f, 0.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT2(-1.0f, 1.0f) },
-		{ XMFLOAT3(-0.45f, -0.5f, 0.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) },
-		{ XMFLOAT3(normDevX + size, normDevY - size, 0.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, -1.0f) }
+		{ XMFLOAT3(normDevX - size, normDevY - size, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+		{ XMFLOAT3(normDevX - size, normDevY + size, 0.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+		{ XMFLOAT3(normDevX + size, normDevY + size, 0.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) },
+		{ XMFLOAT3(normDevX + size, normDevY - size, 0.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }
 	};
 
 	ZeroMemory(&vertexDesc, sizeof(vertexDesc));
@@ -37,6 +37,6 @@ TexturedBox::TexturedBox(float normDevX, float normDevY, float size, int texture
 	indexDesc.CPUAccessFlags = 0;
 	indexDesc.MiscFlags = 0;
 
-	//indexSubData = { indices.data(), 0, 0 };
-	indexSubData.pSysMem = indices.data();
+	indexSubData = { indices.data(), 0, 0 };
+	//indexSubData.pSysMem = indices.data();
 }

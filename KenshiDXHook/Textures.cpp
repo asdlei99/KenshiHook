@@ -19,17 +19,22 @@ bool Textures::LoadTexture(std::string filepath)
 
 	ID3D11ShaderResourceView* texture;
 
+	// Convert our filepath string to a widechar array, because Windows likes widechars
 	wchar_t wchar[200];
 	mbstowcs(wchar, filepath.c_str(), filepath.length());
-	if (FAILED(CreateDDSTextureFromFile(device, wchar, nullptr, &texture)))
+
+	HRESULT texResult = CreateDDSTextureFromFile(device, wchar, nullptr, &texture);
+	_com_error texErr(texResult);
+	console->PrintDebugMsg("Texture HRESULT: %s", (void*)texErr.ErrorMessage(), console->PROGRESS);
+
+	if (FAILED(texResult))
 	{
-		console->PrintDebugMsg("Texture loading failed", (void*)filepath.c_str(), console->MsgType::FAILED);
+		console->PrintDebugMsg("Texture loading failed: %s - invalid .DDS format?", (void*)filepath.c_str(), console->MsgType::FAILED);
 		return false;
 	}
 	
 	textures.push_back(texture);
 
-	console->PrintDebugMsg("Texture loaded", nullptr, console->MsgType::PROGRESS);
 	return true;
 }
 

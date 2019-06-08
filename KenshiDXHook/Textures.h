@@ -3,6 +3,7 @@
 #include <d3d11.h>
 #include <DDSTextureLoader.h>
 #include "DebugConsole.h"
+#include <comdef.h>
 
 using namespace DirectX;
 

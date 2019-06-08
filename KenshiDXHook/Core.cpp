@@ -98,7 +98,8 @@ void Core::Render(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags)
 	{
 		console.PrintDebugMsg("Loading textures...", nullptr, console.MsgType::STARTPROCESS);
 		textures.SetDevice(renderer.GetDevice());
-		textures.LoadTexture(".\\textures\\test.dds");
+		textures.LoadTexture(".\\textures\\texture.dds");
+		textures.LoadTexture(".\\textures\\texture2.dds");
 		renderer.SetTextureManager(&textures);
 		texturesLoaded = true;
 		console.PrintDebugMsg("All textures loaded", nullptr, console.MsgType::COMPLETE);
@@ -107,32 +108,45 @@ void Core::Render(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags)
 	if (!meshesCreated)
 	{
 		console.PrintDebugMsg("Loading meshes...", nullptr, console.MsgType::STARTPROCESS);
-		AddMesh(TexturedBox(0.0f, 0.0f, 0.2f, 0));
+		AddMesh(TexturedBox(-0.3f, 0.0f, 0.2f, 0));
+		AddMesh(TexturedBox(0.3f, 0.0f, 0.2f, 1));
 		meshesCreated = true;
 		console.PrintDebugMsg("All meshes loaded", nullptr, console.MsgType::COMPLETE);
 	}
 
-	renderer.Render(swapChain, syncInterval, flags, &thingsToDraw);
+	if (renderer.IsFirstRender())
+	{
+		console.PrintDebugMsg("Pre-render stage complete, now rendering...", nullptr, console.MsgType::STARTPROCESS);
+		renderer.SetFirstRender(false);
+	}
+
+	renderer.Render(swapChain, syncInterval, flags, thingsToDraw);
 }
 
 void Core::AddMesh(Mesh mesh)
 {
 
-	if (FAILED(renderer.CreateBufferForMesh(mesh.GetVertexDesc(), mesh.GetVertexSubData(), mesh.GetVertexBuffer())))
+	HRESULT VBResult = renderer.CreateBufferForMesh(mesh.GetVertexDesc(), mesh.GetVertexSubData(), mesh.GetVertexBuffer());
+	_com_error VBErr(VBResult);
+	console.PrintDebugMsg("CreateBuffer (VB) HRESULT: %s", (void*)VBErr.ErrorMessage(), console.MsgType::PROGRESS);
+
+	if (FAILED(VBResult))
 	{
 		console.PrintDebugMsg("Failed to create vertex buffer for mesh", nullptr, console.MsgType::FAILED);
 		return;
 	}
 
-	console.PrintDebugMsg("SJEKK %p", (void*)mesh.GetVertexBuffer(), console.MsgType::PROGRESS);
+	HRESULT IBResult = renderer.CreateBufferForMesh(mesh.GetIndexDesc(), mesh.GetIndexSubData(), mesh.GetIndexBuffer());
+	_com_error IBErr(IBResult);
+	console.PrintDebugMsg("CreateBuffer (IB) HRESULT: %s", (void*)IBErr.ErrorMessage(), console.MsgType::PROGRESS);
 
-	if (FAILED(renderer.CreateBufferForMesh(mesh.GetIndexDesc(), mesh.GetIndexSubData(), mesh.GetIndexBuffer())))
+	if (FAILED(IBResult))
 	{
 		console.PrintDebugMsg("Failed to create index buffer for mesh", nullptr, console.MsgType::FAILED);
 		return;
 	}
 
-	console.PrintDebugMsg("Loaded a mesh for drawing: %s", (void*)mesh.GetMeshClassName().c_str(), console.MsgType::PROGRESS);
+	console.PrintDebugMsg("Successfully loaded mesh for rendering: %s", (void*)mesh.GetMeshClassName().c_str(), console.MsgType::PROGRESS);
 	thingsToDraw.push_back(mesh);
 }
 
