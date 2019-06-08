@@ -12,3 +12,8 @@ x64/Release/
 packages/directxtk_desktop_2015\.2019\.5\.31\.1/
 
 KenshiDXHook/Release/
+
+KenshiDXHook/packages.config
+KenshiDXHook/settings.cfg
+KenshiDXHook/kenshi.log
+KenshiDXHook/kenshi_info.log
