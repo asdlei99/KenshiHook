@@ -100,7 +100,8 @@
       <ModuleDefinitionFile>dxgi.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
-      <Command>ren "C:\Users\Marius\Documents\Programming\Visual Studio 2017\KenshiDXHook\Release\KenshiDXHook.dll" "dxgi.dll"</Command>
+      <Command>COPY "C:\Users\Marius\Documents\Programming\Github repositories\KenshiDXHook\x64\Release\dxgi.dll" "E:\SteamLibrary\steamapps\common\Kenshi\dxgi.dll"
+XCOPY /Y "C:\Users\Marius\Documents\Programming\Github repositories\KenshiDXHook\KenshiDXHook\textures" "E:\SteamLibrary\steamapps\common\Kenshi\textures"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -122,7 +123,8 @@
       <AdditionalDependencies>d3dcompiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>COPY "C:\Users\Marius\Documents\Programming\Github repositories\KenshiDXHook\x64\Release\dxgi.dll" "E:\SteamLibrary\steamapps\common\Kenshi\dxgi.dll"</Command>
+      <Command>COPY "C:\Users\Marius\Documents\Programming\Github repositories\KenshiDXHook\x64\Release\dxgi.dll" "E:\SteamLibrary\steamapps\common\Kenshi\dxgi.dll"
+XCOPY /Y "C:\Users\Marius\Documents\Programming\Github repositories\KenshiDXHook\KenshiDXHook\textures" "E:\SteamLibrary\steamapps\common\Kenshi\textures"</Command>
     </PostBuildEvent>
     <FxCompile>
       <ShaderModel>5.0</ShaderModel>
@@ -147,7 +149,8 @@
       <ModuleDefinitionFile>dxgi.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
-      <Command>ren "C:\Users\Marius\Documents\Programming\Visual Studio 2017\KenshiDXHook\Release\KenshiDXHook.dll" "dxgi.dll"</Command>
+      <Command>COPY "C:\Users\Marius\Documents\Programming\Github repositories\KenshiDXHook\x64\Release\dxgi.dll" "E:\SteamLibrary\steamapps\common\Kenshi\dxgi.dll"
+XCOPY /Y "C:\Users\Marius\Documents\Programming\Github repositories\KenshiDXHook\KenshiDXHook\textures" "E:\SteamLibrary\steamapps\common\Kenshi\textures"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -173,7 +176,8 @@
       <AdditionalDependencies>d3dcompiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>COPY "C:\Users\Marius\Documents\Programming\Github repositories\KenshiDXHook\x64\Release\dxgi.dll" "E:\SteamLibrary\steamapps\common\Kenshi\dxgi.dll"</Command>
+      <Command>COPY "C:\Users\Marius\Documents\Programming\Github repositories\KenshiDXHook\x64\Release\dxgi.dll" "E:\SteamLibrary\steamapps\common\Kenshi\dxgi.dll"
+XCOPY /Y "C:\Users\Marius\Documents\Programming\Github repositories\KenshiDXHook\KenshiDXHook\textures" "E:\SteamLibrary\steamapps\common\Kenshi\textures"</Command>
     </PostBuildEvent>
     <FxCompile>
       <ShaderModel>5.0</ShaderModel>
@@ -181,10 +185,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Core.h" />
+    <ClInclude Include="Mesh.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="TexturedBox.h" />
+    <ClInclude Include="Textures.h" />
+    <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DebugConsole.cpp" />
+    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="TexturedBox.cpp" />
+    <ClCompile Include="Textures.cpp" />
     <ClInclude Include="DebugConsole.h" />
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="dxgi.cpp" />
@@ -193,6 +204,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="dxgi.def" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="JmpToAddr.asm">
@@ -202,27 +214,23 @@
     </MASM>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="PixelShader.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+    <FxCompile Include="Shaders.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </Text>
-    <Text Include="VertexShader.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </Text>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="textures\test.DDS" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
+    <Import Project="..\packages\directxtk_desktop_2015.2019.5.31.1\build\native\directxtk_desktop_2015.targets" Condition="Exists('..\packages\directxtk_desktop_2015.2019.5.31.1\build\native\directxtk_desktop_2015.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\directxtk_desktop_2015.2019.5.31.1\build\native\directxtk_desktop_2015.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\directxtk_desktop_2015.2019.5.31.1\build\native\directxtk_desktop_2015.targets'))" />
+  </Target>
 </Project>

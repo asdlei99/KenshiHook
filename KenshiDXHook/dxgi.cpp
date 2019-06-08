@@ -6,9 +6,10 @@ HINSTANCE thisInstance = 0;
 HINSTANCE originalDll = 0;
 FARPROC procAddresses[21];
 
+Core core = Core();
+
 DWORD WINAPI MainThread(LPVOID lpParam)
 {
-	Core core = Core();
 	core.Init();
 
 	return S_OK;
@@ -49,6 +50,7 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, LPVOID)
 	}
 	else if (reason == DLL_PROCESS_DETACH)
 	{
+		core.~Core();
 		FreeLibrary(originalDll);
 		return 1;
 	}

@@ -19,6 +19,9 @@
     <Filter Include="HLSL Shaders">
       <UniqueIdentifier>{878cfa63-2eb2-4a8d-af0d-84eb99591a09}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Textures">
+      <UniqueIdentifier>{0bc63536-bd18-4a19-a4c7-a25c764c835e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -28,6 +31,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DebugConsole.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TexturedBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Textures.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -44,6 +59,15 @@
     <ClCompile Include="Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TexturedBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Textures.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="JmpToHookAndJmpBack.asm">
@@ -57,13 +81,16 @@
     <None Include="dxgi.def">
       <Filter>Module Definition File</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="PixelShader.hlsl">
+    <FxCompile Include="Shaders.hlsl">
       <Filter>HLSL Shaders</Filter>
-    </Text>
-    <Text Include="VertexShader.hlsl">
-      <Filter>HLSL Shaders</Filter>
-    </Text>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="textures\test.DDS">
+      <Filter>Textures</Filter>
+    </Image>
   </ItemGroup>
 </Project>

@@ -6,35 +6,41 @@
 #include <fstream>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
+#include "Vertex.h"
+#include "Mesh.h"
+#include "TexturedBox.h"
+#include "Textures.h"
 
 class Renderer
 {
 private:
-	ID3D11Buffer* vertexBufferObject;
+	ID3D11Buffer* vertexBuffer;
 	ID3D11VertexShader* vertexShader;
 	ID3D11PixelShader* pixelShader;
 	ID3D11InputLayout* inputLayout;
-	ID3D11DeviceContext *context = NULL;
-	ID3D11Device *device = NULL;
-	ID3D11RenderTargetView *mainRenderTargetView;
-
-	struct Vertex
-	{
-		DirectX::XMFLOAT3 pos;
-		DirectX::XMFLOAT4 color;
-	};
+	ID3D11DeviceContext* context = NULL;
+	ID3D11Device* device = NULL;
+	ID3D11RenderTargetView* mainRenderTargetView;
+	D3D11_VIEWPORT viewport;
+	ID3D11SamplerState* samplerState;
 
 	DebugConsole* console;
+	Textures* textures;
 	bool initialized = false;
 	int windowWidth, windowHeight;
 
-	HRESULT GetDeviceAndContextFromSwapChain(IDXGISwapChain *swapChain, ID3D11Device **device, ID3D11DeviceContext **context);
-	void CreateRectangleModel();
+	void CreateExampleTriangle();
 	void CreatePipeline();
-	ID3DBlob* LoadShader(const char* shaderData, std::string targetShaderVersion);
+	ID3DBlob* LoadShader(const char* shaderData, std::string targetShaderVersion, std::string shaderEntry);
 
 public:
 	Renderer() {};
 	Renderer(DebugConsole* console);
-	bool Render(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags);
+	bool Init(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags);
+	bool Render(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags, std::vector<Mesh>* thingsToDraw);
+	HRESULT CreateBufferForMesh(D3D11_BUFFER_DESC desc, D3D11_SUBRESOURCE_DATA data, ID3D11Buffer* buffer);
+	bool IsInitialized();
+	ID3D11Device* GetDevice();
+	void SetTextureManager(Textures* textures);
+	void Cleanup();
 };

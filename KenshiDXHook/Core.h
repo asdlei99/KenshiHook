@@ -9,6 +9,9 @@
 #include <string>
 #include "DebugConsole.h"
 #include "Renderer.h"
+#include "Mesh.h"
+#include "TexturedBox.h"
+#include "Textures.h"
 
 // An unsigned __int64 consists of 8 bytes in memory,
 // and we are dealing with a 64-bit program, where the memory addresses are
@@ -22,14 +25,22 @@ typedef HRESULT (__fastcall* PresentFunction)(IDXGISwapChain *pSwapChain, UINT S
 class Core
 {
 private:
+	PresentFunction originalPresentFunction;
 	QWORD originalDllBaseAddress;
 	QWORD originalPresentFunctionOffset;
+	bool texturesLoaded = false;
+	bool meshesCreated = false;
+	std::vector<Mesh> thingsToDraw = std::vector<Mesh>();
 
 public:
+	QWORD newPresentReturn;
 	DebugConsole console;
 	Renderer renderer;
+	Textures textures;
 	void Init();
-	void Update();
 	void Hook(QWORD originalFunction, QWORD newFunction, int bytes);
+	void Update();
+	void Render(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags);
+	void AddMesh(Mesh);
 	~Core();
 };

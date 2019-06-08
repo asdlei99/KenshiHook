@@ -17,12 +17,12 @@ void DebugConsole::PrintDebugMsg(std::string msg, void* value, MsgType msgType)
 
 	std::string preMsg = "";
 
-	for (int i = 0; i < counter; i++)
+	for (int i = 1; i < counter; i++)
 	{
-		preMsg += "---";
+		preMsg += "-";
 	}
 
-	if (counter > 0) preMsg += ">";
+	if(counter > 0) preMsg += ">";
 
 	switch (msgType)
 	{

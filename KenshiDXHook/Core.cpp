@@ -5,15 +5,7 @@ extern "C" int JmpToHookAndJmpBack();
 extern "C" QWORD presentAddr = NULL;
 extern "C" QWORD jmpBackAddr = NULL;
 
-// Pointer to original Present
-PresentFunction originalPresentFunction;
-
-// Where our Present will jump to after its done
-QWORD newPresentReturn = NULL;
-
-std::vector<std::string> pushToConsole = std::vector<std::string>();
 bool first = true;
-
 Core* coreRef;
 
 
@@ -28,9 +20,9 @@ HRESULT __fastcall Present(IDXGISwapChain *swapChain, UINT syncInterval, UINT fl
 		first = false;
 	}
 
-	coreRef->renderer.Render(swapChain, syncInterval, flags);
+	coreRef->Render(swapChain, syncInterval, flags);
 
-	return ((PresentFunction)newPresentReturn)(swapChain, syncInterval, flags);
+	return ((PresentFunction)coreRef->newPresentReturn)(swapChain, syncInterval, flags);
 }
 
 void Core::Init()
@@ -40,6 +32,7 @@ void Core::Init()
 	console.PrintDebugMsg("Initializing hook...", nullptr, console.MsgType::STARTPROCESS);
 
 	renderer = Renderer(&console);
+	textures = Textures(&console);
 
 	originalDllBaseAddress = (QWORD)GetModuleHandleA("dxgi_.dll");
 	originalPresentFunctionOffset = 0x5070;
@@ -53,24 +46,7 @@ void Core::Init()
 
 	console.PrintDebugMsg("Present function hooked successfully", nullptr, console.MsgType::PROGRESS);
 
-	Update();
-}
-
-void Core::Update()
-{
-
-	while (true)
-	{
-
-		if (pushToConsole.size() > 0)
-		{
-			console.PrintDebugMsg(pushToConsole.at(0), nullptr, console.MsgType::PROGRESS);
-			pushToConsole.erase(pushToConsole.begin());
-		}
-
-		Sleep(20);
-	}
-
+	//Update();
 }
 
 void Core::Hook(QWORD originalFunction, QWORD newFunction, int length)
@@ -92,8 +68,7 @@ void Core::Hook(QWORD originalFunction, QWORD newFunction, int length)
 	// which we place now
 	*(QWORD*)((QWORD)originalFunction + 6) = (QWORD)newFunction;
 
-	DWORD temp;
-	VirtualProtect((void*)originalFunction, length, oldProtection, &temp);
+	VirtualProtect((void*)originalFunction, length, oldProtection, &oldProtection);
 
 	originalPresentFunction = (PresentFunction)((QWORD)originalFunction + length);
 
@@ -106,7 +81,64 @@ void Core::Hook(QWORD originalFunction, QWORD newFunction, int length)
 	return;
 }
 
+void Core::Update()
+{
+	// Do things here if you want to
+}
+
+void Core::Render(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags)
+{
+
+	if (!renderer.IsInitialized())
+	{
+		if(!renderer.Init(swapChain, syncInterval, flags)) return;
+	}
+
+	if (!texturesLoaded)
+	{
+		console.PrintDebugMsg("Loading textures...", nullptr, console.MsgType::STARTPROCESS);
+		textures.SetDevice(renderer.GetDevice());
+		textures.LoadTexture(".\\textures\\test.dds");
+		renderer.SetTextureManager(&textures);
+		texturesLoaded = true;
+		console.PrintDebugMsg("All textures loaded", nullptr, console.MsgType::COMPLETE);
+	}
+
+	if (!meshesCreated)
+	{
+		console.PrintDebugMsg("Loading meshes...", nullptr, console.MsgType::STARTPROCESS);
+		AddMesh(TexturedBox(0.0f, 0.0f, 0.2f, 0));
+		meshesCreated = true;
+		console.PrintDebugMsg("All meshes loaded", nullptr, console.MsgType::COMPLETE);
+	}
+
+	renderer.Render(swapChain, syncInterval, flags, &thingsToDraw);
+}
+
+void Core::AddMesh(Mesh mesh)
+{
+
+	if (FAILED(renderer.CreateBufferForMesh(mesh.GetVertexDesc(), mesh.GetVertexSubData(), mesh.GetVertexBuffer())))
+	{
+		console.PrintDebugMsg("Failed to create vertex buffer for mesh", nullptr, console.MsgType::FAILED);
+		return;
+	}
+
+	console.PrintDebugMsg("SJEKK %p", (void*)mesh.GetVertexBuffer(), console.MsgType::PROGRESS);
+
+	if (FAILED(renderer.CreateBufferForMesh(mesh.GetIndexDesc(), mesh.GetIndexSubData(), mesh.GetIndexBuffer())))
+	{
+		console.PrintDebugMsg("Failed to create index buffer for mesh", nullptr, console.MsgType::FAILED);
+		return;
+	}
+
+	console.PrintDebugMsg("Loaded a mesh for drawing: %s", (void*)mesh.GetMeshClassName().c_str(), console.MsgType::PROGRESS);
+	thingsToDraw.push_back(mesh);
+}
+
+// Destructor doesn't seem to get called ever, oh well
 Core::~Core()
 {
+	renderer.Cleanup();
 	FreeConsole();
 }
