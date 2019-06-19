@@ -1,19 +1,23 @@
 #include "TexturedBox.h"
 
-TexturedBox::TexturedBox(float normDevX, float normDevY, float size, int textureIndex)
-{
-	this->normDevCoords = XMFLOAT3(normDevX, normDevY, 1.0f);
-	this->textureIndex = textureIndex;
-	this->size = size;
-	this->textureIndex = textureIndex;
-	this->meshClassName = typeid(this).name();
+using namespace DirectX;
 
+TexturedBox::TexturedBox(float posX, float posY, float width, float height, int textureIndex)
+{
+	this->pos = XMFLOAT3(posX, posY, 1.0f);
+	this->width = width;
+	this->height = height;
+	this->textureIndex = textureIndex;
+	this->meshClassName = typeid(this).name(); // Lets us retrieve the name of this class in a string
+
+	// Texture coords must be included but if textureIndex is -1 (initial value) then
+	// the mesh will instead be rendered using the supplied color
 	vertices =
 	{
-		{ XMFLOAT3(normDevX - size, normDevY - size, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
-		{ XMFLOAT3(normDevX - size, normDevY + size, 0.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-		{ XMFLOAT3(normDevX + size, normDevY + size, 0.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) },
-		{ XMFLOAT3(normDevX + size, normDevY - size, 0.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) }
+		{ XMFLOAT3(posX - (width / 2), posY - (height / 2), 0.0f), XMFLOAT4(0.5f, 0.0f, 0.5f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+		{ XMFLOAT3(posX - (width / 2), posY + (height / 2), 0.0f), XMFLOAT4(0.5f, 0.0f, 0.5f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+		{ XMFLOAT3(posX + (width / 2), posY + (height / 2), 0.0f), XMFLOAT4(0.5f, 0.0f, 0.5f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
+		{ XMFLOAT3(posX + (width / 2), posY - (height / 2), 0.0f), XMFLOAT4(0.5f, 0.0f, 0.5f, 1.0f), XMFLOAT2(1.0f, 1.0f) }
 	};
 
 	ZeroMemory(&vertexDesc, sizeof(vertexDesc));
@@ -38,5 +42,4 @@ TexturedBox::TexturedBox(float normDevX, float normDevY, float size, int texture
 	indexDesc.MiscFlags = 0;
 
 	indexSubData = { indices.data(), 0, 0 };
-	//indexSubData.pSysMem = indices.data();
 }

@@ -1,22 +1,22 @@
 #include "Core.h"
 
-// Variables for use with assembly code
+// Variables for sharing with assembly code
 extern "C" int JmpToHookAndJmpBack();
-extern "C" QWORD presentAddr = NULL;
-extern "C" QWORD jmpBackAddr = NULL;
+extern "C" MEMADDR presentAddr = NULL;
+extern "C" MEMADDR jmpBackAddr = NULL;
 
 bool first = true;
-Core* coreRef;
+Core* coreRef = nullptr;
 
-
-HRESULT __fastcall Present(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags)
+// The custom code that the hook redirects towards
+HRESULT __fastcall Present(IDXGISwapChain* swapChain, UINT syncInterval, UINT flags)
 {
 
 	if (first)
 	{
 		DebugConsole* consoleRef = &coreRef->console;
-		consoleRef->PrintDebugMsg("Hello from function hook", nullptr, consoleRef->MsgType::PROGRESS);
-		consoleRef->PrintDebugMsg("Swap chain address: %p", (void*)swapChain, consoleRef->MsgType::COMPLETE);
+		consoleRef->PrintDebugMsg("Hello from hooked function", nullptr, MsgType::PROGRESS);
+		consoleRef->PrintDebugMsg("Swap chain address: %p", (void*)swapChain, MsgType::COMPLETE);
 		first = false;
 	}
 
@@ -25,31 +25,43 @@ HRESULT __fastcall Present(IDXGISwapChain *swapChain, UINT syncInterval, UINT fl
 	return ((PresentFunction)coreRef->newPresentReturn)(swapChain, syncInterval, flags);
 }
 
-void Core::Init()
+void Core::Init(HMODULE originalDll)
 {
+	this->originalDll = originalDll;
 	coreRef = this;
 	console = DebugConsole("KenshiHook");
-	console.PrintDebugMsg("Initializing hook...", nullptr, console.MsgType::STARTPROCESS);
+	console.PrintDebugMsg("Initializing hook...", nullptr, MsgType::STARTPROCESS);
 
 	renderer = Renderer(&console);
 	textures = Textures(&console);
+	fonts = Fonts(&console);
 
-	originalDllBaseAddress = (QWORD)GetModuleHandleA("dxgi_.dll");
+	originalDllBaseAddress = (MEMADDR)originalDll;
+
+#ifdef is64Bit
 	originalPresentFunctionOffset = 0x5070;
-	originalPresentFunction = (PresentFunction)(originalDllBaseAddress + (QWORD)originalPresentFunctionOffset);
+#else
+	originalPresentFunctionOffset = 0x10230;
+#endif
 
-	console.PrintDebugMsg("dxgi.dll base address: %p", (void*)originalDllBaseAddress, console.MsgType::PROGRESS);
-	console.PrintDebugMsg("Present offset: %p", (void*)originalPresentFunctionOffset, console.MsgType::PROGRESS);
-	console.PrintDebugMsg("Present address: %p", (void*)originalPresentFunction, console.MsgType::PROGRESS);
+	originalPresentFunction = (PresentFunction)(originalDllBaseAddress + (MEMADDR)originalPresentFunctionOffset);
 
-	Hook((QWORD)originalPresentFunction, (QWORD)JmpToHookAndJmpBack, 14);
+	console.PrintDebugMsg("dxgi.dll base address: %p", (void*)originalDllBaseAddress, MsgType::PROGRESS);
+	console.PrintDebugMsg("Present offset: %p", (void*)originalPresentFunctionOffset, MsgType::PROGRESS);
+	console.PrintDebugMsg("Present address: %p", (void*)originalPresentFunction, MsgType::PROGRESS);
 
-	console.PrintDebugMsg("Present function hooked successfully", nullptr, console.MsgType::PROGRESS);
+#ifdef is64Bit
+	Hook((MEMADDR)originalPresentFunction, (MEMADDR)JmpToHookAndJmpBack, 14);
+#else
+	Hook((MEMADDR)originalPresentFunction, (MEMADDR)JmpToHookAndJmpBack, 5);
+#endif
 
-	//Update();
+	console.PrintDebugMsg("Present function hooked successfully", nullptr, MsgType::PROGRESS);
+
+	Update();
 }
 
-void Core::Hook(QWORD originalFunction, QWORD newFunction, int length)
+void Core::Hook(MEMADDR originalFunction, MEMADDR newFunction, int length)
 {
 	DWORD oldProtection;
 
@@ -57,33 +69,55 @@ void Core::Hook(QWORD originalFunction, QWORD newFunction, int length)
 
 	memset((void*)originalFunction, 0x90, length);
 
-	// Place an absolute 64-bit jump (FF 25 00000000)
-	// Bytes are flipped (because of endianness), so we use _byteswap
-	// Fill the _byteswap function with 8 bytes so it doesn't return garbage
-	*(QWORD*)originalFunction = _byteswap_uint64(0xFF25000000000000);
+	/*
+	* We will now place an absolute 64-bit jump (FF 25 00000000)
+	* Bytes are flipped (because of endianness), so we use _byteswap for easier reading
+	* We fill the _byteswap function with a full 8 bytes so it doesn't return garbage
+	*
+	* An absolute 64-bit jump instruction uses 6 bytes on its own,
+	* but then reads an 8-byte address from the subsequent memory address
+	*
+	* Else if it's 32-bit, do a normal jump (E9)
+	*/
 
+#ifdef is64Bit
+	*((MEMADDR*)originalFunction) = _byteswap_uint64(0xFF25000000000000);
+	*((MEMADDR*)(originalFunction + 6)) = newFunction;
+#else
+	*((MEMADDR*)originalFunction) = _byteswap_ulong(0xE9000000);
+	*((MEMADDR*)(originalFunction + 1)) = newFunction;
+#endif
 
-	// We placed an absolute 64-bit jump, that instruction uses only 6 bytes
-	// on its own, but then reads an 8-byte address from the subsequent memory address
-	// which we place now
-	*(QWORD*)((QWORD)originalFunction + 6) = (QWORD)newFunction;
+	/*
+	* *((MEMADDR*)(variable + modifier) - explanation
+	* MEMADDR is a pointer, but it's not explicitly defined as one
+	* So what we do here is first modify the MEMADDR variable directly with some offset 
+	* (wouldn't work properly with pointer arithmetic),
+	* then we cast the variable as a pointer, and then we dereference that pointer.
+	* This way we get the value at the memory address pointed to by MEMADDR
+	*/
 
 	VirtualProtect((void*)originalFunction, length, oldProtection, &oldProtection);
 
-	originalPresentFunction = (PresentFunction)((QWORD)originalFunction + length);
+	// Setting the pointer to our new present function, assembly code jumps there
+	presentAddr = (MEMADDR)Present;
 
-	presentAddr = (QWORD)Present;
-	jmpBackAddr = (QWORD)originalPresentFunction;
+	// Setting the memory address for the return from our new present back to the assembly code
+	newPresentReturn = (MEMADDR)JmpToHookAndJmpBack + 6;
 
-	// We want a jump from our new present back to the original instructions
-	newPresentReturn = (QWORD)JmpToHookAndJmpBack + 6;
+	// Setting the memory address for a jump from our assembly code back to the original present code
+	jmpBackAddr = originalFunction + length;
 
 	return;
 }
 
 void Core::Update()
 {
-	// Do things here if you want to
+	// Do things here if needed
+	//while (true)
+	//{
+
+	//}
 }
 
 void Core::Render(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags)
@@ -96,63 +130,86 @@ void Core::Render(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags)
 
 	if (!texturesLoaded)
 	{
-		console.PrintDebugMsg("Loading textures...", nullptr, console.MsgType::STARTPROCESS);
+		console.PrintDebugMsg("Loading textures...", nullptr, MsgType::STARTPROCESS);
 		textures.SetDevice(renderer.GetDevice());
-		textures.LoadTexture(".\\textures\\texture.dds");
-		textures.LoadTexture(".\\textures\\texture2.dds");
+		textures.LoadTexture(".\\hook_textures\\texture.dds");
+		textures.LoadTexture(".\\hook_textures\\texture2.dds");
 		renderer.SetTextureManager(&textures);
 		texturesLoaded = true;
-		console.PrintDebugMsg("All textures loaded", nullptr, console.MsgType::COMPLETE);
+		console.PrintDebugMsg("All textures loaded", nullptr, MsgType::COMPLETE);
 	}
 
 	if (!meshesCreated)
 	{
-		console.PrintDebugMsg("Loading meshes...", nullptr, console.MsgType::STARTPROCESS);
-		AddMesh(TexturedBox(-0.3f, 0.0f, 0.2f, 0));
-		AddMesh(TexturedBox(0.3f, 0.0f, 0.2f, 1));
+		console.PrintDebugMsg("Loading meshes...", nullptr, MsgType::STARTPROCESS);
+		AddMeshForDrawing(TexturedBox(-0.3f, 0.0f, 0.4f, 0.4f, 0));
+		AddMeshForDrawing(TexturedBox(0.3f, 0.0f, 0.4f, 0.4f, 1));
 		meshesCreated = true;
-		console.PrintDebugMsg("All meshes loaded", nullptr, console.MsgType::COMPLETE);
+		console.PrintDebugMsg("All meshes loaded", nullptr, MsgType::COMPLETE);
+	}
+
+	if (!fontsLoaded)
+	{
+		console.PrintDebugMsg("Loading fonts...", nullptr, MsgType::STARTPROCESS);
+		fonts.SetDevice(renderer.GetDevice());
+		fonts.LoadFont(".\\hook_fonts\\arial_22.spritefont");
+		renderer.SetFontManager(&fonts);
+		fontsLoaded = true;
+		console.PrintDebugMsg("All fonts loaded", nullptr, MsgType::COMPLETE);
+	}
+
+	if (!textCreated)
+	{
+		console.PrintDebugMsg("Loading text...", nullptr, MsgType::STARTPROCESS);
+		Text test = Text("Testing testing", 0.0f, 0.0f, 0, fonts.GetFont(0));
+		test.SetPos(0.0f, 0.0f);
+		AddTextForDrawing(test);
+		textCreated = true;
+		console.PrintDebugMsg("All text loaded", nullptr, MsgType::COMPLETE);
 	}
 
 	if (renderer.IsFirstRender())
 	{
-		console.PrintDebugMsg("Pre-render stage complete, now rendering...", nullptr, console.MsgType::STARTPROCESS);
+		console.PrintDebugMsg("Pre-render stage complete, now rendering...", nullptr, MsgType::STARTPROCESS);
 		renderer.SetFirstRender(false);
 	}
 
-	renderer.Render(swapChain, syncInterval, flags, thingsToDraw);
+	renderer.Render(swapChain, syncInterval, flags, thingsToDraw, textToDraw);
 }
 
-void Core::AddMesh(Mesh mesh)
+// Attempt to create vertex and index buffers for the given mesh
+void Core::AddMeshForDrawing(Mesh mesh)
 {
-
 	HRESULT VBResult = renderer.CreateBufferForMesh(mesh.GetVertexDesc(), mesh.GetVertexSubData(), mesh.GetVertexBuffer());
 	_com_error VBErr(VBResult);
-	console.PrintDebugMsg("CreateBuffer (VB) HRESULT: %s", (void*)VBErr.ErrorMessage(), console.MsgType::PROGRESS);
+	console.PrintDebugMsg("CreateBuffer (VB) HRESULT: %s", (void*)VBErr.ErrorMessage(), MsgType::PROGRESS);
 
 	if (FAILED(VBResult))
 	{
-		console.PrintDebugMsg("Failed to create vertex buffer for mesh", nullptr, console.MsgType::FAILED);
+		console.PrintDebugMsg("Failed to create vertex buffer for mesh", nullptr, MsgType::FAILED);
 		return;
 	}
 
 	HRESULT IBResult = renderer.CreateBufferForMesh(mesh.GetIndexDesc(), mesh.GetIndexSubData(), mesh.GetIndexBuffer());
 	_com_error IBErr(IBResult);
-	console.PrintDebugMsg("CreateBuffer (IB) HRESULT: %s", (void*)IBErr.ErrorMessage(), console.MsgType::PROGRESS);
+	console.PrintDebugMsg("CreateBuffer (IB) HRESULT: %s", (void*)IBErr.ErrorMessage(), MsgType::PROGRESS);
 
 	if (FAILED(IBResult))
 	{
-		console.PrintDebugMsg("Failed to create index buffer for mesh", nullptr, console.MsgType::FAILED);
+		console.PrintDebugMsg("Failed to create index buffer for mesh", nullptr, MsgType::FAILED);
 		return;
 	}
 
-	console.PrintDebugMsg("Successfully loaded mesh for rendering: %s", (void*)mesh.GetMeshClassName().c_str(), console.MsgType::PROGRESS);
+	console.PrintDebugMsg("Successfully loaded mesh for rendering: %s", (void*)mesh.GetMeshClassName().c_str(), MsgType::PROGRESS);
 	thingsToDraw.push_back(mesh);
 }
 
-// Destructor doesn't seem to get called ever, oh well
+void Core::AddTextForDrawing(Text text)
+{
+	textToDraw.push_back(text);
+}
+
 Core::~Core()
 {
-	renderer.Cleanup();
 	FreeConsole();
 }

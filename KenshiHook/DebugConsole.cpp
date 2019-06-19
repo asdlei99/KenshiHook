@@ -38,7 +38,7 @@ void DebugConsole::PrintDebugMsg(std::string msg, void* value, MsgType msgType)
 		counter--;
 		break;
 	case(FAILED): 
-		printf(std::string(preMsg + " [!] " + msg + "\n").c_str(), value);
+		printf(std::string("[!] " + msg + "\n").c_str(), value);
 		break;
 	}
 

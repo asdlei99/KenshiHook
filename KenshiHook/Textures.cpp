@@ -1,9 +1,12 @@
 #include "Textures.h"
 
+using namespace DirectX;
+using namespace Microsoft::WRL;
+
 Textures::Textures(DebugConsole* console)
 {
 	this->console = console;
-	textures = std::vector<ID3D11ShaderResourceView*>();
+	textures = std::vector<ComPtr<ID3D11ShaderResourceView>>();
 }
 
 void Textures::SetDevice(ID3D11Device* device)
@@ -11,38 +14,35 @@ void Textures::SetDevice(ID3D11Device* device)
 	this->device = device;
 }
 
-bool Textures::LoadTexture(std::string filepath)
+int Textures::LoadTexture(std::string filepath)
 {
-	if (device == nullptr) return false;
+	if (device == nullptr) return -1;
 
-	console->PrintDebugMsg("Loading texture: %s", (void*)filepath.c_str(), console->MsgType::PROGRESS);
+	console->PrintDebugMsg("Loading texture: %s", (void*)filepath.c_str(), MsgType::PROGRESS);
 
-	ID3D11ShaderResourceView* texture;
+	ComPtr<ID3D11ShaderResourceView> texture = nullptr;
 
-	// Convert our filepath string to a widechar array, because Windows likes widechars
-	wchar_t wchar[200];
-	mbstowcs(wchar, filepath.c_str(), filepath.length());
+	// Convert our filepath string to a wide string, because Windows likes wide characters
+	std::wstring wideString(filepath.length(), ' ');
+	std::copy(filepath.begin(), filepath.end(), wideString.begin());
 
-	HRESULT texResult = CreateDDSTextureFromFile(device, wchar, nullptr, &texture);
+	HRESULT texResult = CreateDDSTextureFromFile(device.Get(), wideString.c_str(), nullptr, texture.GetAddressOf());
 	_com_error texErr(texResult);
-	console->PrintDebugMsg("Texture HRESULT: %s", (void*)texErr.ErrorMessage(), console->PROGRESS);
+	console->PrintDebugMsg("Texture HRESULT: %s", (void*)texErr.ErrorMessage(), MsgType::PROGRESS);
 
 	if (FAILED(texResult))
 	{
-		console->PrintDebugMsg("Texture loading failed: %s - invalid .DDS format?", (void*)filepath.c_str(), console->MsgType::FAILED);
-		return false;
+		console->PrintDebugMsg("Texture loading failed: %s - invalid .DDS format?", (void*)filepath.c_str(), MsgType::FAILED);
+		textures.push_back(nullptr);
+		return -1;
 	}
 	
 	textures.push_back(texture);
 
-	return true;
+	return textures.size() - 1;
 }
 
-ID3D11ShaderResourceView* Textures::GetTexture(int textureIndex)
+ComPtr<ID3D11ShaderResourceView> Textures::GetTexture(int textureIndex)
 {
 	return textures.at(textureIndex);
-}
-
-Textures::~Textures()
-{
 }

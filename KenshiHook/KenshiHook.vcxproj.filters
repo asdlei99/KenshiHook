@@ -45,12 +45,15 @@
     <ClInclude Include="Textures.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Fonts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Text.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dxgi.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DebugConsole.cpp">
@@ -68,12 +71,27 @@
     <ClCompile Include="Textures.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DllMain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Fonts.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Text.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="JmpToHookAndJmpBack.asm">
+    <MASM Include="JmpToAddr64.asm">
+      <Filter>Source Files\Assembly Code</Filter>
+    </MASM>
+    <MASM Include="JmpToHookAndJmpBack64.asm">
       <Filter>Source Files\Assembly Code</Filter>
     </MASM>
     <MASM Include="JmpToAddr.asm">
+      <Filter>Source Files\Assembly Code</Filter>
+    </MASM>
+    <MASM Include="JmpToHookAndJmpBack.asm">
       <Filter>Source Files\Assembly Code</Filter>
     </MASM>
   </ItemGroup>
@@ -84,13 +102,16 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="textures\test.DDS">
-      <Filter>Textures</Filter>
-    </Image>
-  </ItemGroup>
-  <ItemGroup>
     <FxCompile Include="Shaders.hlsl">
       <Filter>HLSL Shaders</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="hooktextures\texture.DDS">
+      <Filter>Textures</Filter>
+    </Image>
+    <Image Include="hooktextures\texture2.DDS">
+      <Filter>Textures</Filter>
+    </Image>
   </ItemGroup>
 </Project>

@@ -1,14 +1,16 @@
 #include "Mesh.h"
 
+using namespace DirectX;
+using namespace Microsoft::WRL;
 
 XMFLOAT3 Mesh::GetPos()
 {
-	return normDevCoords;
+	return pos;
 }
 
 ID3D11Buffer** Mesh::GetVertexBuffer()
 {
-	return &vertexBuffer;
+	return vertexBuffer.GetAddressOf();
 }
 
 D3D11_BUFFER_DESC Mesh::GetVertexDesc()
@@ -23,7 +25,7 @@ D3D11_SUBRESOURCE_DATA Mesh::GetVertexSubData()
 
 ID3D11Buffer** Mesh::GetIndexBuffer()
 {
-	return &indexBuffer;
+	return indexBuffer.GetAddressOf();
 }
 
 D3D11_BUFFER_DESC Mesh::GetIndexDesc()

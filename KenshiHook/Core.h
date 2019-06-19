@@ -13,35 +13,69 @@
 #include "TexturedBox.h"
 #include "Textures.h"
 #include <comdef.h>
+#include "Text.h"
+#include "Fonts.h"
 
-// An unsigned __int64 consists of 8 bytes in memory,
-// and we are dealing with a 64-bit program, where the memory addresses are
-// 8 bytes long, so we use QWORD (the same as unsigned __int64) to hold memory addresses
-typedef unsigned __int64 QWORD; // Seems my C++ doesn't have QWORD predefined
+// We redo the defines from DllMain, because the defines are not global
 
-// Definition of the structure of the DXGI present function, so we can treat memory addresses
-// as a function, and pass parameters to the registers and stack at the location
+// Check if 64 bit
+#ifdef _WIN64
+#define is64Bit 1
+#endif
+
+// Check GCC also
+#ifdef __GNUC__
+#ifdef __x86_64__ || __ppc64__
+#define is64Bit 1
+#endif
+#endif
+
+/*
+* A QWORD consists of 8 bytes in memory, and if we are dealing
+* with a 64-bit program, where the memory addresses are 8 bytes long,
+* we use QWORD (same size as unsigned __int64) to hold memory addresses.
+* Otherwise, with 32-bit, we use a DWORD, which consists of 4 bytes
+*/
+#ifdef is64Bit
+#define JmpToHookAndJmpBack JmpToHookAndJmpBack64
+typedef unsigned __int64 QWORD; // My C++ doesn't have QWORD for some reason
+typedef QWORD MEMADDR; 
+#else
+#define JmpToHookAndJmpBack JmpToHookAndJmpBack
+typedef DWORD MEMADDR;
+#endif
+
+// Type definition of the DXGI present function, so we can cast memory addresses
+// to this function, this way we can call the function at the given memory address
+// and pass parameters to the registers and stack at the location
 typedef HRESULT (__fastcall* PresentFunction)(IDXGISwapChain *pSwapChain, UINT SyncInterval, UINT Flags);
 
 class Core
 {
 private:
+	HMODULE originalDll;
+	MEMADDR originalDllBaseAddress;
+	MEMADDR originalPresentFunctionOffset;
 	PresentFunction originalPresentFunction;
-	QWORD originalDllBaseAddress;
-	QWORD originalPresentFunctionOffset;
 	bool texturesLoaded = false;
 	bool meshesCreated = false;
+	bool fontsLoaded = false;
+	bool textCreated = false;
 	std::vector<Mesh> thingsToDraw = std::vector<Mesh>();
+	std::vector<Text> textToDraw = std::vector<Text>();
 
 public:
-	QWORD newPresentReturn;
+	MEMADDR newPresentReturn;
 	DebugConsole console;
 	Renderer renderer;
 	Textures textures;
-	void Init();
-	void Hook(QWORD originalFunction, QWORD newFunction, int bytes);
+	Fonts fonts;
+
+	void Init(HMODULE originalDll);
+	void Hook(MEMADDR originalFunction, MEMADDR newFunction, int bytes);
 	void Update();
-	void Render(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags);
-	void AddMesh(Mesh mesh);
+	void Render(IDXGISwapChain* swapChain, UINT syncInterval, UINT flags);
+	void AddMeshForDrawing(Mesh mesh);
+	void AddTextForDrawing(Text text);
 	~Core();
 };

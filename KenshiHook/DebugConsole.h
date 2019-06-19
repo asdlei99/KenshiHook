@@ -5,6 +5,14 @@
 #include <iostream>
 #include <Windows.h>
 
+enum MsgType
+{
+	STARTPROCESS,
+	PROGRESS,
+	COMPLETE,
+	FAILED
+};
+
 class DebugConsole
 {
 private:
@@ -12,13 +20,7 @@ private:
 	int counter = 0;
 
 public:
-	enum MsgType
-	{
-		STARTPROCESS,
-		PROGRESS,
-		COMPLETE,
-		FAILED
-	};
+
 	DebugConsole();
 	DebugConsole(std::string consoleName);
 	void PrintDebugMsg(std::string msg, void* variable, MsgType msgType);

@@ -1,5 +1,8 @@
 R""(
 
+Texture2D tex;
+SamplerState sampleType;
+
 struct VertexShaderInput
 {
     float4 pos : POSITION;
@@ -23,17 +26,16 @@ PixelShaderInput VS(VertexShaderInput input)
     return psi;
 }
 
-Texture2D tex;
-SamplerState sampleType;
+float4 PSTex(PixelShaderInput input) : SV_Target
+{
+    float4 textureColor;
+    textureColor = tex.Sample(sampleType, input.texcoord);
+    return textureColor;
+}
 
 float4 PS(PixelShaderInput input) : SV_Target
 {
-    float4 textureColor;
-
-    textureColor = tex.Sample(sampleType, input.texcoord);
-
-    //return input.color;
-    return textureColor;
+    return input.color;
 }
 
 )""

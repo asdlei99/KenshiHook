@@ -10,40 +10,56 @@
 #include "Mesh.h"
 #include "TexturedBox.h"
 #include "Textures.h"
+#include <wrl/client.h>
+#include <SpriteBatch.h>
+#include <SpriteFont.h>
+#include "Text.h"
+#include <fstream>
+#include "Fonts.h"
+
+// ComPtr is an official smart pointer for COM objects, DirectX objects are COM objects
 
 class Renderer
 {
 private:
-	ID3D11Buffer* vertexBuffer;
-	ID3D11VertexShader* vertexShader;
-	ID3D11PixelShader* pixelShader;
-	ID3D11InputLayout* inputLayout;
-	ID3D11DeviceContext* context = NULL;
-	ID3D11Device* device = NULL;
-	ID3D11RenderTargetView* mainRenderTargetView;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer;
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderTextures;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
+	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext> context = NULL;
+	Microsoft::WRL::ComPtr<ID3D11Device> device = NULL;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> mainRenderTargetView;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
 	D3D11_VIEWPORT viewport;
-	ID3D11SamplerState* samplerState;
+	std::shared_ptr<DirectX::SpriteBatch> spriteBatch = nullptr;
+	std::shared_ptr<DirectX::SpriteFont> exampleFont = nullptr;
 
 	DebugConsole* console;
 	Textures* textures;
+	Fonts* fonts;
+
 	bool initialized = false;
 	bool firstRender = true;
 	int windowWidth, windowHeight;
 
-	void CreateExampleTriangle();
 	void CreatePipeline();
-	ID3DBlob* LoadShader(const char* shaderData, std::string targetShaderVersion, std::string shaderEntry);
+	Microsoft::WRL::ComPtr<ID3DBlob> LoadShader(const char* shaderData, std::string targetShaderVersion, std::string shaderEntry);
+	void CreateExampleTriangle();
+	void CreateExampleFont();
+	void DrawExampleTriangle();
+	void DrawExampleText();
 
 public:
 	Renderer() {};
 	Renderer(DebugConsole* console);
-	bool Init(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags);
-	bool Render(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags, std::vector<Mesh> thingsToDraw);
+	bool Init(IDXGISwapChain* swapChain, UINT syncInterval, UINT flags);
+	bool Render(IDXGISwapChain* swapChain, UINT syncInterval, UINT flags, std::vector<Mesh> thingsToDraw, std::vector<Text> textToDraw);
 	HRESULT CreateBufferForMesh(D3D11_BUFFER_DESC desc, D3D11_SUBRESOURCE_DATA data, ID3D11Buffer** buffer);
 	bool IsInitialized();
 	bool IsFirstRender();
 	void SetFirstRender(bool isFirstRender);
 	ID3D11Device* GetDevice();
 	void SetTextureManager(Textures* textures);
-	void Cleanup();
+	void SetFontManager(Fonts* fonts);
 };

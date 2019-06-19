@@ -81,6 +81,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <TargetName>dxgi</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -130,10 +131,13 @@ XCOPY /Y "C:\Users\Marius\Documents\Programming\Github repositories\KenshiHook\K
     <FxCompile>
       <ShaderModel>5.0</ShaderModel>
     </FxCompile>
+    <Manifest>
+      <AdditionalManifestFiles>%(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -148,10 +152,12 @@ XCOPY /Y "C:\Users\Marius\Documents\Programming\Github repositories\KenshiHook\K
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>dxgi.def</ModuleDefinitionFile>
+      <AdditionalDependencies>D3DCompiler.lib;d3d11.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PostBuildEvent>
-      <Command>COPY "C:\Users\Marius\Documents\Programming\Github repositories\KenshiHook\x64\Release\dxgi.dll" "E:\SteamLibrary\steamapps\common\Kenshi\dxgi.dll"
-XCOPY /Y "C:\Users\Marius\Documents\Programming\Github repositories\KenshiHook\KenshiHook\textures" "E:\SteamLibrary\steamapps\common\Kenshi\textures"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -178,44 +184,60 @@ XCOPY /Y "C:\Users\Marius\Documents\Programming\Github repositories\KenshiHook\K
     </Link>
     <PostBuildEvent>
       <Command>COPY "C:\Users\Marius\Documents\Programming\Github repositories\KenshiHook\x64\Release\dxgi.dll" "E:\SteamLibrary\steamapps\common\Kenshi\dxgi.dll"
-XCOPY /Y "C:\Users\Marius\Documents\Programming\Github repositories\KenshiHook\KenshiHook\textures" "E:\SteamLibrary\steamapps\common\Kenshi\textures\"</Command>
+XCOPY /Y "C:\Users\Marius\Documents\Programming\Github repositories\KenshiHook\KenshiHook\hook_textures" "E:\SteamLibrary\steamapps\common\Kenshi\hook_textures\"
+XCOPY /Y "C:\Users\Marius\Documents\Programming\Github repositories\KenshiHook\KenshiHook\hook_fonts" "E:\SteamLibrary\steamapps\common\Kenshi\hook_fonts\"</Command>
     </PostBuildEvent>
     <FxCompile>
       <ShaderModel>5.0</ShaderModel>
     </FxCompile>
+    <Manifest>
+      <AdditionalManifestFiles>%(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Core.h" />
+    <ClInclude Include="Fonts.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="Text.h" />
     <ClInclude Include="TexturedBox.h" />
     <ClInclude Include="Textures.h" />
     <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DebugConsole.cpp" />
+    <ClCompile Include="Fonts.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="Text.cpp" />
     <ClCompile Include="TexturedBox.cpp" />
     <ClCompile Include="Textures.cpp" />
     <ClInclude Include="DebugConsole.h" />
     <ClCompile Include="Core.cpp" />
-    <ClCompile Include="dxgi.cpp" />
+    <ClCompile Include="DllMain.cpp" />
     <ClCompile Include="Renderer.cpp" />
-    <MASM Include="JmpToHookAndJmpBack.asm" />
+    <MASM Include="JmpToAddr.asm">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </MASM>
+    <MASM Include="JmpToHookAndJmpBack.asm">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </MASM>
+    <MASM Include="JmpToHookAndJmpBack64.asm">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </MASM>
   </ItemGroup>
   <ItemGroup>
     <None Include="dxgi.def" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="JmpToAddr.asm">
+    <MASM Include="JmpToAddr64.asm">
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </MASM>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="textures\test.DDS" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders.hlsl">
@@ -224,6 +246,10 @@ XCOPY /Y "C:\Users\Marius\Documents\Programming\Github repositories\KenshiHook\K
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="hooktextures\texture.DDS" />
+    <Image Include="hooktextures\texture2.DDS" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

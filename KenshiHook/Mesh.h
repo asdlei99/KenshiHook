@@ -3,30 +3,32 @@
 #include <vector>
 #include <d3d11.h>
 #include <typeinfo>
+#include <wrl/client.h>
 
-using namespace DirectX;
-
+// A base class used for making custom meshes
 class Mesh
 {
 protected:
-	XMFLOAT3 normDevCoords;
+	DirectX::XMFLOAT3 pos;
 
 	std::vector<Vertex> vertices;
-	ID3D11Buffer* vertexBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer;
 	D3D11_BUFFER_DESC vertexDesc = { 0 };
 	D3D11_SUBRESOURCE_DATA vertexSubData = { 0 };
 
 	std::vector<unsigned int> indices;
-	ID3D11Buffer* indexBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> indexBuffer;
 	D3D11_BUFFER_DESC indexDesc = { 0 };
 	D3D11_SUBRESOURCE_DATA indexSubData = { 0 };
 
-	float size; // An arbitrary size value for the mesh
-	int textureIndex = -1;
-	std::string meshClassName;
+	float size; // An arbitrary size value for the mesh, use this one for circles etc.
+	float width; // Use these for rectangles etc.
+	float height;
+	int textureIndex = -1; // Index for a texture in the texture list
+	std::string meshClassName = "Undefined name";
 
 public:
-	XMFLOAT3 GetPos();
+	DirectX::XMFLOAT3 GetPos();
 
 	ID3D11Buffer** GetVertexBuffer();
 	D3D11_BUFFER_DESC GetVertexDesc();

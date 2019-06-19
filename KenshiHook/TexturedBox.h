@@ -4,5 +4,5 @@
 class TexturedBox : public Mesh
 {
 public:
-	TexturedBox(float normDevX, float normDevY, float size, int textureIndex);
+	TexturedBox(float posX, float posY, float width, float height, int textureIndex);
 };

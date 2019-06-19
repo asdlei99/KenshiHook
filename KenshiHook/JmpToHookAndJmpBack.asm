@@ -1,8 +1,10 @@
 includelib legacy_stdio_definitions.lib
 
+.model flat, c
+
 .data
-extern presentAddr : qword
-extern jmpBackAddr : qword
+extern presentAddr : dword
+extern jmpBackAddr : dword
 
 ; This jmps to our hook, then performs instructions 
 ; originally performed by dxgi.dll in the memory that 
@@ -10,16 +12,13 @@ extern jmpBackAddr : qword
 
 .code
 	JmpToHookAndJmpBack PROC 
-		jmp qword ptr [presentAddr]
+		jmp [presentAddr]
 
 		; Previously overwritten instructions
-		mov [rsp+10h],rbx ; Our Present will jmp back here on its own
-		mov [rsp+20h],rsi
-		push rbp
-		push rdi
-		push r14
+		mov edi,edi
+		push ebp
+		mov ebp,esp
 
-		jmp qword ptr [jmpBackAddr]
+		jmp [jmpBackAddr]
 	JmpToHookAndJmpBack ENDP
 end
-
