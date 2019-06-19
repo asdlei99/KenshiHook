@@ -1,6 +1,8 @@
-## KenshiHook
+# KenshiHook
 
-##### If you want to build this, follow these steps:
+## If you want to build this, follow these steps:
+
+Project needs to be built for 64-bit.
 
 You will have to remove/change the post-build events in Visual Studio, you can find this in Project properties -> Configuration properties -> Build events -> Post-build event.
 
