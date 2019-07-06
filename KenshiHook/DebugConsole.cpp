@@ -43,3 +43,18 @@ void DebugConsole::PrintDebugMsg(std::string msg, void* value, MsgType msgType)
 	}
 
 }
+
+void DebugConsole::PrintSingleChar(char value, bool isHex)
+{
+	if (value == ' ') return;
+
+	if (isHex)
+	{
+		printf("%X", value);
+	}
+	else
+	{
+		printf("%c", value);
+	}
+
+}

@@ -44,5 +44,6 @@ int Textures::LoadTexture(std::string filepath)
 
 ComPtr<ID3D11ShaderResourceView> Textures::GetTexture(int textureIndex)
 {
+	if (textureIndex == -1 || textureIndex >= textures.size()) return nullptr;
 	return textures.at(textureIndex);
 }

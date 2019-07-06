@@ -13,11 +13,50 @@ extern jmpBackAddr : qword
 		jmp qword ptr [presentAddr]
 
 		; Previously overwritten instructions
-		mov [rsp+10h],rbx ; Our Present will jmp back here on its own
-		mov [rsp+20h],rsi
-		push rbp
-		push rdi
-		push r14
+		;mov [rsp+10h],rbx ; Our Present will jmp back here on its own
+		;mov [rsp+20h],rsi
+		;push rbp
+		;push rdi
+		;push r14
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
 
 		jmp qword ptr [jmpBackAddr]
 	JmpToHookAndJmpBack64 ENDP

@@ -9,7 +9,7 @@ float Text::MapFloatValueInRange(float value, float valueMin, float valueMax, fl
 }
 
 // Measures text size as pixels, and then returns the size as normalized device coords
-XMFLOAT2 Text::MeasureTextSize(const char* text, DirectX::SpriteFont* font)
+XMFLOAT2 Text::MeasureTextSize(const char* text, DirectX::SpriteFont* font, int windowWidth, int windowHeight)
 {
 	XMFLOAT2 textSize;
 	XMVECTOR textVector = font->MeasureString(text);
@@ -17,19 +17,25 @@ XMFLOAT2 Text::MeasureTextSize(const char* text, DirectX::SpriteFont* font)
 
 	return XMFLOAT2
 	(
-		MapFloatValueInRange(textSize.x, 0, textSize.x, -1.0f, 1.0f),
-		MapFloatValueInRange(textSize.y, 0, textSize.y, -1.0f, 1.0f)
+		MapFloatValueInRange(textSize.x, 0, windowWidth, 0.0f, 2.0f),
+		MapFloatValueInRange(textSize.y, 0, windowHeight, 0.0f, 2.0f)
 	);
 }
 
-Text::Text(const char* text, float posX, float posY, int fontIndex, DirectX::SpriteFont* font)
+Text::Text(const char* text, float posX, float posY, int fontIndex)
 {
 	this->text = text;
+	this->pos = XMFLOAT2(posX, posY);
 	this->fontIndex = fontIndex;
+}
+
+Text::Text(const char* text, float posX, float posY, int fontIndex, DirectX::SpriteFont* font, int windowWidth, int windowHeight)
+{
+	this->text = text;
 	pos = XMFLOAT2(posX, posY);
-	textSize = MeasureTextSize(text, font);
-	printf("textSizeX: %f", textSize.x);
-	printf("textSizeY: %f", textSize.y);
+	this->fontIndex = fontIndex;
+	if (font == nullptr) return;
+	textSize = MeasureTextSize(text, font, windowWidth, windowHeight);
 }
 
 void Text::SetPos(float posX, float posY)

@@ -25,16 +25,25 @@ HRESULT __fastcall Present(IDXGISwapChain* swapChain, UINT syncInterval, UINT fl
 	return ((PresentFunction)coreRef->newPresentReturn)(swapChain, syncInterval, flags);
 }
 
+
+
+
 void Core::Init(HMODULE originalDll)
 {
 	this->originalDll = originalDll;
 	coreRef = this;
 	console = DebugConsole("KenshiHook");
-	console.PrintDebugMsg("Initializing hook...", nullptr, MsgType::STARTPROCESS);
-
-	renderer = Renderer(&console);
 	textures = Textures(&console);
 	fonts = Fonts(&console);
+	renderer = Renderer(&console, &textures, &fonts);
+
+	// Settings
+	drawExamples = true; // Whether or not to draw the example triangle and text
+
+	console.PrintDebugMsg("Initializing hook...", nullptr, MsgType::STARTPROCESS);
+
+	char currentPath[260];
+	console.PrintDebugMsg("Current working directory: %s", _getcwd(currentPath, sizeof(currentPath)), MsgType::PROGRESS);
 
 	originalDllBaseAddress = (MEMADDR)originalDll;
 
@@ -64,13 +73,31 @@ void Core::Init(HMODULE originalDll)
 void Core::Hook(MEMADDR originalFunction, MEMADDR newFunction, int length)
 {
 	DWORD oldProtection;
+	DWORD oldProtection2;
 
 	VirtualProtect((void*)originalFunction, length, PAGE_EXECUTE_READWRITE, &oldProtection);
+
+	// Copy original bytes to a buffer
+	originalInstructionsBuffer = std::make_unique<std::string>(length, '*');
+	memcpy(originalInstructionsBuffer.get(), (void*)originalFunction, length);
+
+	console.PrintDebugMsg("Original instructions buffer: ", nullptr, MsgType::PROGRESS);
+	for (int i = 0; i < originalInstructionsBuffer.get()->length(); i++)
+	{
+		console.PrintSingleChar(originalInstructionsBuffer.get()->c_str()[i], true);
+	}
+	console.PrintSingleChar('\n', false);
+
+	VirtualProtect((void*)newFunction, length, PAGE_EXECUTE_READWRITE, &oldProtection2);
+
+	memcpy((MEMADDR*)newFunction + 1, originalInstructionsBuffer.get(), length);
+
+	VirtualProtect((void*)newFunction, length, oldProtection2, &oldProtection2);
 
 	memset((void*)originalFunction, 0x90, length);
 
 	/*
-	* We will now place an absolute 64-bit jump (FF 25 00000000)
+	* We will now place an absolute 64-bit jump (FF 25 00000000) to our detour function
 	* Bytes are flipped (because of endianness), so we use _byteswap for easier reading
 	* We fill the _byteswap function with a full 8 bytes so it doesn't return garbage
 	*
@@ -91,8 +118,7 @@ void Core::Hook(MEMADDR originalFunction, MEMADDR newFunction, int length)
 	/*
 	* *((MEMADDR*)(variable + modifier) - explanation
 	* MEMADDR is a pointer, but it's not explicitly defined as one
-	* So what we do here is first modify the MEMADDR variable directly with some offset 
-	* (wouldn't work properly with pointer arithmetic),
+	* So what we do here is first modify the MEMADDR (unsigned 64bit int) variable directly with some offset 
 	* then we cast the variable as a pointer, and then we dereference that pointer.
 	* This way we get the value at the memory address pointed to by MEMADDR
 	*/
@@ -113,7 +139,7 @@ void Core::Hook(MEMADDR originalFunction, MEMADDR newFunction, int length)
 
 void Core::Update()
 {
-	// Do things here if needed
+	// Update things here if needed
 	//while (true)
 	//{
 
@@ -131,10 +157,11 @@ void Core::Render(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags)
 	if (!texturesLoaded)
 	{
 		console.PrintDebugMsg("Loading textures...", nullptr, MsgType::STARTPROCESS);
+		
 		textures.SetDevice(renderer.GetDevice());
 		textures.LoadTexture(".\\hook_textures\\texture.dds");
 		textures.LoadTexture(".\\hook_textures\\texture2.dds");
-		renderer.SetTextureManager(&textures);
+
 		texturesLoaded = true;
 		console.PrintDebugMsg("All textures loaded", nullptr, MsgType::COMPLETE);
 	}
@@ -142,8 +169,10 @@ void Core::Render(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags)
 	if (!meshesCreated)
 	{
 		console.PrintDebugMsg("Loading meshes...", nullptr, MsgType::STARTPROCESS);
-		AddMeshForDrawing(TexturedBox(-0.3f, 0.0f, 0.4f, 0.4f, 0));
-		AddMeshForDrawing(TexturedBox(0.3f, 0.0f, 0.4f, 0.4f, 1));
+
+		//AddMeshForDrawing(TexturedBox(-0.3f, 0.0f, 0.4f, 0.4f, 0));
+		//AddMeshForDrawing(TexturedBox(0.3f, 0.0f, 0.4f, 0.4f, 1));
+
 		meshesCreated = true;
 		console.PrintDebugMsg("All meshes loaded", nullptr, MsgType::COMPLETE);
 	}
@@ -151,9 +180,10 @@ void Core::Render(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags)
 	if (!fontsLoaded)
 	{
 		console.PrintDebugMsg("Loading fonts...", nullptr, MsgType::STARTPROCESS);
+		
 		fonts.SetDevice(renderer.GetDevice());
 		fonts.LoadFont(".\\hook_fonts\\arial_22.spritefont");
-		renderer.SetFontManager(&fonts);
+
 		fontsLoaded = true;
 		console.PrintDebugMsg("All fonts loaded", nullptr, MsgType::COMPLETE);
 	}
@@ -161,9 +191,11 @@ void Core::Render(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags)
 	if (!textCreated)
 	{
 		console.PrintDebugMsg("Loading text...", nullptr, MsgType::STARTPROCESS);
-		Text test = Text("Testing testing", 0.0f, 0.0f, 0, fonts.GetFont(0));
-		test.SetPos(0.0f, 0.0f);
-		AddTextForDrawing(test);
+
+		Text test = Text("Hello there", 0.0f, 0.0f, 0, fonts.GetFont(0), renderer.GetWindowWidth(), renderer.GetWindowHeight());
+		test.SetPos(test.GetPos().x - test.GetTextMidpointX(), test.GetPos().y - test.GetTextMidpointY());
+		//AddTextForDrawing(test);
+
 		textCreated = true;
 		console.PrintDebugMsg("All text loaded", nullptr, MsgType::COMPLETE);
 	}
@@ -174,7 +206,7 @@ void Core::Render(IDXGISwapChain *swapChain, UINT syncInterval, UINT flags)
 		renderer.SetFirstRender(false);
 	}
 
-	renderer.Render(swapChain, syncInterval, flags, thingsToDraw, textToDraw);
+	renderer.Render(swapChain, syncInterval, flags, thingsToDraw, textToDraw, drawExamples);
 }
 
 // Attempt to create vertex and index buffers for the given mesh

@@ -52,14 +52,14 @@ private:
 
 public:
 	Renderer() {};
-	Renderer(DebugConsole* console);
+	Renderer(DebugConsole* console, Textures* textures, Fonts* fonts);
 	bool Init(IDXGISwapChain* swapChain, UINT syncInterval, UINT flags);
-	bool Render(IDXGISwapChain* swapChain, UINT syncInterval, UINT flags, std::vector<Mesh> thingsToDraw, std::vector<Text> textToDraw);
+	bool Render(IDXGISwapChain* swapChain, UINT syncInterval, UINT flags, std::vector<Mesh> thingsToDraw, std::vector<Text> textToDraw, bool drawExamples);
 	HRESULT CreateBufferForMesh(D3D11_BUFFER_DESC desc, D3D11_SUBRESOURCE_DATA data, ID3D11Buffer** buffer);
 	bool IsInitialized();
 	bool IsFirstRender();
+	int GetWindowWidth();
+	int GetWindowHeight();
 	void SetFirstRender(bool isFirstRender);
 	ID3D11Device* GetDevice();
-	void SetTextureManager(Textures* textures);
-	void SetFontManager(Fonts* fonts);
 };

@@ -24,4 +24,5 @@ public:
 	DebugConsole();
 	DebugConsole(std::string consoleName);
 	void PrintDebugMsg(std::string msg, void* variable, MsgType msgType);
+	void PrintSingleChar(char value, bool isHex);
 };

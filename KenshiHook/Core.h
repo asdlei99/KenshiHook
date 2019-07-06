@@ -15,19 +15,14 @@
 #include <comdef.h>
 #include "Text.h"
 #include "Fonts.h"
+#include <direct.h>
+#include <stdio.h>
 
 // We redo the defines from DllMain, because the defines are not global
 
 // Check if 64 bit
 #ifdef _WIN64
 #define is64Bit 1
-#endif
-
-// Check GCC also
-#ifdef __GNUC__
-#ifdef __x86_64__ || __ppc64__
-#define is64Bit 1
-#endif
 #endif
 
 /*
@@ -61,8 +56,10 @@ private:
 	bool meshesCreated = false;
 	bool fontsLoaded = false;
 	bool textCreated = false;
+	bool drawExamples = false;
 	std::vector<Mesh> thingsToDraw = std::vector<Mesh>();
 	std::vector<Text> textToDraw = std::vector<Text>();
+	std::shared_ptr<std::string> originalInstructionsBuffer;
 
 public:
 	MEMADDR newPresentReturn;

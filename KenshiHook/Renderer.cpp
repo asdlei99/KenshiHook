@@ -18,9 +18,11 @@ const char* shaderData = {
 
 
 
-Renderer::Renderer(DebugConsole* console)
+Renderer::Renderer(DebugConsole* console, Textures* textures, Fonts* fonts)
 {
 	this->console = console;
+	this->textures = textures;
+	this->fonts = fonts;
 }
 
 bool Renderer::Init(IDXGISwapChain* swapChain, UINT syncInterval, UINT flags)
@@ -43,9 +45,8 @@ bool Renderer::Init(IDXGISwapChain* swapChain, UINT syncInterval, UINT flags)
 	ZeroMemory(&desc, sizeof(DXGI_SWAP_CHAIN_DESC));
 	swapChain->GetDesc(&desc);
 
-	HWND window = GetForegroundWindow();
 	RECT hwndRect;
-	GetWindowRect(window, &hwndRect);
+	GetClientRect(desc.OutputWindow, &hwndRect);
 	windowWidth = hwndRect.right - hwndRect.left;
 	windowHeight = hwndRect.bottom - hwndRect.top;
 
@@ -70,7 +71,7 @@ bool Renderer::Init(IDXGISwapChain* swapChain, UINT syncInterval, UINT flags)
 	return true;
 }
 
-bool Renderer::Render(IDXGISwapChain* swapChain, UINT syncInterval, UINT flags, std::vector<Mesh> thingsToDraw, std::vector<Text> textToDraw)
+bool Renderer::Render(IDXGISwapChain* swapChain, UINT syncInterval, UINT flags, std::vector<Mesh> thingsToDraw, std::vector<Text> textToDraw, bool drawExamples)
 {
 	context->OMSetRenderTargets(1, mainRenderTargetView.GetAddressOf(), nullptr);
 	context->RSSetViewports(1, &viewport);
@@ -105,16 +106,23 @@ bool Renderer::Render(IDXGISwapChain* swapChain, UINT syncInterval, UINT flags, 
 		context->DrawIndexed(mesh.GetNumIndices(), 0, 0);
 	}
 
+	if (drawExamples)
+	{
+		DrawExampleTriangle(); // Example triangle for render testing
+		DrawExampleText(); // Same but with text
+	}
+
+	// Spritebatch modifies certain rendering settings, so we draw them last
 	spriteBatch->Begin();
 	for (int i = 0; i < textToDraw.size(); i++)
 	{
 		Text text = textToDraw.at(i);
-		fonts->GetFont(text.GetFontIndex())->DrawString(spriteBatch.get(), text.GetText(), XMFLOAT2(text.GetPosPixels(windowWidth, windowHeight).x, text.GetPosPixels(windowWidth, windowHeight).y));
+		SpriteFont* font = fonts->GetFont(textToDraw.at(i).GetFontIndex());
+		if(font != nullptr) 
+			font->DrawString(spriteBatch.get(), text.GetText(), XMFLOAT2(text.GetPosPixels(windowWidth, windowHeight).x, text.GetPosPixels(windowWidth, windowHeight).y));
 	}
 	spriteBatch->End();
 
-	//DrawExampleTriangle(); // Example triangle for render testing
-	//DrawExampleText(); // Same but with text
 	return true;
 }
 
@@ -246,6 +254,7 @@ void Renderer::DrawExampleText()
 	XMVECTOR textVector2 = exampleFont->MeasureString(text2);
 	XMStoreFloat2(&stringSize, textVector);
 	XMStoreFloat2(&stringSize2, textVector2);
+
 	spriteBatch->Begin();
 	exampleFont->DrawString(spriteBatch.get(), text, XMFLOAT2((windowWidth / 2) - (stringSize.x / 2), (windowHeight * 0.335) - (stringSize.y / 2)));
 	exampleFont->DrawString(spriteBatch.get(), text2, XMFLOAT2((windowWidth / 2) - (stringSize2.x / 2), (windowHeight * 0.665) - (stringSize2.y / 2)));
@@ -262,6 +271,16 @@ bool Renderer::IsFirstRender()
 	return firstRender;
 }
 
+int Renderer::GetWindowWidth()
+{
+	return windowWidth;
+}
+
+int Renderer::GetWindowHeight()
+{
+	return windowHeight;
+}
+
 void Renderer::SetFirstRender(bool isFirstRender)
 {
 	firstRender = isFirstRender;
@@ -270,14 +289,4 @@ void Renderer::SetFirstRender(bool isFirstRender)
 ID3D11Device* Renderer::GetDevice()
 {
 	return device.Get();
-}
-
-void Renderer::SetTextureManager(Textures* textures)
-{
-	this->textures = textures;
-}
-
-void Renderer::SetFontManager(Fonts* fonts)
-{
-	this->fonts = fonts;
 }

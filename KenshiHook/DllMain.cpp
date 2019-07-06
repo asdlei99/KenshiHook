@@ -2,16 +2,12 @@
 #include <iostream>
 #include "Core.h"
 
+// Set injectable to 1 to make this .dll injectable instead of a proxy
+#define injectable 0
+
 // Check if 64 bit
 #ifdef _WIN64
 #define is64Bit 1
-#endif
-
-// Check GCC also
-#ifdef __GNUC__
-#ifdef __x86_64__ || __ppc64__
-#define is64Bit 1
-#endif
 #endif
 
 // Dynamically change which assembly files we use
@@ -21,15 +17,13 @@
 #define JmpToAddr JmpToAddr() // 32-bit
 #endif
 
-// Assembly function defined in JmpToAddr.asm or JmpToAddr64.asm
+// Assembly function defined in JmpToAddr64.asm or JmpToAddr.asm 
 extern "C" int JmpToAddr;
 
-HMODULE thisModule = 0;
-HMODULE originalDll = 0;
-FARPROC procAddresses[21];
+HMODULE thisModule = 0; // Handle for this .dll
+HMODULE originalDll = 0; // Handle for original .dll
+FARPROC procAddresses[21]; // Original .dll function addresses
 
-// Define core globally so any thread can easily access it
-// Beware of thread safety
 Core core = Core();
 
 DWORD WINAPI MainThread(LPVOID lpParam)
@@ -44,23 +38,30 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID)
 
 	if (reason == DLL_PROCESS_ATTACH)
 	{
+
+		// A way to pause the execution of the .dll when it first loads
+		bool paused = true;
+		while (paused)
+		{
+			if (GetAsyncKeyState(VK_F4)) // F4 button
+			{
+				paused = false;
+			}
+		}
+
 		thisModule = module;
 
-		//bool paused = true;
-		//while (paused)
-		//{
-		//	if (GetAsyncKeyState(VK_F4)) // F4 button
-		//	{
-		//		paused = false;
-		//	}
-		//}
+#if injectable == 1
+		originalDll = GetModuleHandleA("dxgi.dll");
+		CreateThread(0, 0x1000, &MainThread, 0, 0, NULL);
+		return 1;
+#endif
 
 		// Load the correct version of dxgi.dll
 #ifdef is64Bit
 		originalDll = LoadLibrary("C:\\Windows\\System32\\dxgi.dll");
 #else
-		//originalDll = LoadLibrary("C:\\Windows\\SysWOW64\\dxgi.dll");
-		originalDll = LoadLibrary("dxgi_.dll");
+		originalDll = LoadLibrary("C:\\Windows\\SysWOW64\\dxgi.dll");
 #endif
 
 		if(!originalDll) return false;
@@ -93,7 +94,10 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID)
 	}
 	else if (reason == DLL_PROCESS_DETACH)
 	{
+
+#if injectable == 0
 		FreeLibrary(originalDll);
+#endif
 		return 1;
 	}
 
@@ -101,8 +105,13 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID)
 }
 
 
-// These are the functions our .dll exports, 
-// we jump to the real .dll's functions to do the job for us
+/* 
+* These are the functions our .dll exports, 
+* we jump to the real .dll's functions to do the job for us.
+* I used a tool to automatically create a template proxy .dll,
+* https://www.codeproject.com/Articles/1179147/ProxiFy-Automatic-Proxy-DLL-Generation
+* This way you don't have to manually write all the exports
+*/
 extern "C"
 {
 	FARPROC procAddr = NULL;
