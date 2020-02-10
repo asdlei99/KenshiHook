@@ -1,3 +1,6 @@
+please ignore this one for now, the updated version is in my DirectX11Hook repo.
+
+
 # KenshiHook
 
 ## If you want to build this, follow these steps:
